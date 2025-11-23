@@ -8,7 +8,9 @@
 // @grant        GM_addStyle
 // @run-at       document-idle
 // @version      0.1
+// @updateURL    https://raw.githubusercontent.com/tommyktech/YouTubeNotInterestedButton/refs/heads/main/src/YouTubeNotInterestedButton.user.js
 // @homepageURL  https://github.com/tommyktech/YouTubeNotInterestedButton
+// @supportURL   https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // ==/UserScript==
 GM_addStyle(`
   div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next {
