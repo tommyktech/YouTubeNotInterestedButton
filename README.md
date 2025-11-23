@@ -6,4 +6,5 @@ Tampermonkey script to add a "Not Interested" button to YouTube videos.
 # Download
 <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">YouTubeNotInterestedButton.user.js</a>
 
-<img width="246" height="246" alt="QR_916854" src="https://github.com/user-attachments/assets/20d2a474-d05c-4dc9-8676-00b3e704d5ae" />
+
+<img width="480" height="480" alt="https_github_co_" src="https://github.com/user-attachments/assets/d4df30ca-2838-4aa4-a024-117b3eefd192" />
