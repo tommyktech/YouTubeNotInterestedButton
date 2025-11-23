@@ -1,10 +1,23 @@
 # YouTube Not Interested Button for Tampermonkey
-Tampermonkey script to add a "Not Interested" button to YouTube videos. 
 
-<img width="400" height="342" alt="image" src="https://github.com/user-attachments/assets/b31d1cc7-a07b-4f3b-a03b-d0f9120ab5f6" />
+| Top Page | Watch Page |
+|--------------------|-------------------|
+| <img width="401" height="351" alt="screenshot" src="https://github.com/user-attachments/assets/8242ceb0-a5e2-4cfd-a8f2-f5679931472f" /> | <img width="422" height="269" alt="screenshot 2025-11-24 031732" src="https://github.com/user-attachments/assets/0b4268a1-66d0-480e-8d5b-1d026039cb34" /> |
 
-# Download
-<a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">src/YouTubeNotInterestedButton.user.js</a>
+Tampermonkey script to add "Not Interested" buttons to YouTube videos.   
+It works on both the top page and the watch page.  
+
+There are two buttons:
+
+- The left button only acts as “Not Interested”.
+- The right button acts as “Not Interested” → “Tell us why” → “I’ve already watched this video” in sequence.
+
+Use this script to help adjust your YouTube recommendations.
 
 
-<img width="480" height="480" alt="https_github_co_" src="https://github.com/user-attachments/assets/d4df30ca-2838-4aa4-a024-117b3eefd192" />
+# Download URL
+<a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js</a>
+
+# Download QR Code
+Please use it with Firefox for Android, Microsoft Edge for Android, etc.
+<img width="400" height="400" alt="" src="https://github.com/user-attachments/assets/d4df30ca-2838-4aa4-a024-117b3eefd192" />
