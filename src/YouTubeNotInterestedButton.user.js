@@ -33,7 +33,7 @@ GM_addStyle(`
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.5;
+    //opacity: 0.5;
   }
 
   .additional-btn span {
@@ -52,8 +52,8 @@ GM_addStyle(`
     height: 28px;
     width: 28px;
     //border-radius: 4px;
-    stroke: white;
-    fill: white;
+    stroke: gray;
+    fill: gray;
     stroke-width:0.5px;
   }
 
