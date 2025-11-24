@@ -9,8 +9,8 @@ It works on both the top page and the watch page.
 
 There are two buttons:
 
-- The left button only acts as “Not Interested”.
-- The right button acts as “Not Interested” → “Tell us why” → “I’ve already watched this video” in sequence.
+- The left button performs only the “Not Interested” action.
+- The right button performs the sequence: “Not Interested” → “Tell us why” → “I’ve already watched this video”.
 
 Use this script to help adjust your YouTube recommendations.
 
