@@ -21,7 +21,8 @@ Buttons to delete each video on the watch-history page are also available!
 
 
 # Download URL
-<a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js</a>
+- <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">GitHub (here)</a>
+- Greasy <a href="Fork: https://greasyfork.org/en/scripts/556867-youtube-not-interested-button">Greasy Fork</a>
 
 # Download QR Code
 Please use it with Firefox for Android, Microsoft Edge for Android, etc.  
