@@ -10,9 +10,10 @@
 // @match          https://www.youtube.com/feed/history
 // @grant          GM_addStyle
 // @run-at         document-idle
-// @version        0.1
+// @version        0.12
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
+// @author         https://github.com/tommyktech
 // @license        Apache License 2.0
 // @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.user.js
 // @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.meta.js
