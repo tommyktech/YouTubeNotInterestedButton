@@ -14,6 +14,11 @@ YouTubeの動画に「興味なし」ボタンを設置する Tampermonkey ス�
   
 という違いがあります。YouTubeのおすすめを調整するためにお使いください。
 
+## 視聴履歴削除ボタン
+興味なしボタンに加えて、再生履歴のページで各動画に削除ボタンが付きます。  
+
+<img width="667" height="466" alt="2025-11-25 171432-2" src="https://github.com/user-attachments/assets/806f54aa-b89a-4250-bcf8-cd878de9649a" />
+
 
 
 # インストールURL
