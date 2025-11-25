@@ -19,5 +19,6 @@ Use this script to help adjust your YouTube recommendations.
 <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js</a>
 
 # Download QR Code
-Please use it with Firefox for Android, Microsoft Edge for Android, etc.
+Please use it with Firefox for Android, Microsoft Edge for Android, etc.  
+
 <img width="400" height="400" alt="" src="https://github.com/user-attachments/assets/d4df30ca-2838-4aa4-a024-117b3eefd192" />
