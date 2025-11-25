@@ -10,7 +10,7 @@
 // @match          https://www.youtube.com/feed/history
 // @grant          GM_addStyle
 // @run-at         document-idle
-// @version        0.14
+// @version        0.15
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -245,7 +245,7 @@ GM_addStyle(`
                     console.debug("svg_el:", svg_el)
                     const result = dispatchTapLike(svg_el.parentElement.parentElement)
                     if (result) {
-                        showOverlay('Sent "Not Interested In"');
+                        showOverlay('Sent "Not Interested"');
                     }
                 });
             });
