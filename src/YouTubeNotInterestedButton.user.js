@@ -10,7 +10,7 @@
 // @match          https://www.youtube.com/feed/history
 // @grant          GM_addStyle
 // @run-at         document-idle
-// @version        0.13
+// @version        0.14
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -482,7 +482,7 @@ GM_addStyle(`
             const labelSpan = document.createElement("span");
             labelSpan.className = "yt-core-attributed-string yt-core-attributed-string--white-space-no-wrap";
             labelSpan.setAttribute("role", "text");
-            labelSpan.textContent = "Delete User Feedbacks";
+            labelSpan.textContent = "Edit User Feedbacks";
 
             labelDiv.appendChild(labelSpan);
 
