@@ -22,7 +22,9 @@ YouTubeの動画に「興味なし」ボタンを設置する Tampermonkey ス�
 
 
 # インストールURL
-<a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js</a>
+- <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">GitHub (ここ)</a>
+- <a href="Fork: https://greasyfork.org/en/scripts/556867-youtube-not-interested-button">Greasy Fork</a>
+
 
 # ダウンロード用 QR コード
 Firefox for Android, Micorosft Edge for Android などでお使いください  
