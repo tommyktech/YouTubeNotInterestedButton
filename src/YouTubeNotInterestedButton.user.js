@@ -10,7 +10,7 @@
 // @match          https://www.youtube.com/feed/history
 // @grant          GM_addStyle
 // @run-at         document-idle
-// @version        0.12
+// @version        0.13
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -408,7 +408,6 @@ GM_addStyle(`
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
-        const url = location.href;
         const pathName = location.pathname;
 
         if (pathName == "/" || pathName == "/watch") {
@@ -419,9 +418,116 @@ GM_addStyle(`
         }
     }
 
-    function scanTiles() {
-        document.querySelectorAll(TILE_SELECTOR).forEach((tile, idx) => attachButtons(tile, idx));
+    function attachUserFeedbackLink(targetElem) {
+        function createCompactLink() {
+            // const outerDiv = document.createElement("div");
+            const a = document.createElement("a");
+            a.style.justifyContent = "flex-start";
+            a.href = "https://myactivity.google.com/page?utm_source=my-activity&hl=ja&page=youtube_user_feedback";
+            a.rel = "nofollow";
+            a.target = "_blank";
+            a.className = "yt-spec-button-shape-next yt-spec-button-shape-next--text yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading yt-spec-button-shape-next--enable-backdrop-filter-experiment";
+            a.setAttribute("aria-haspopup", "false");
+            a.setAttribute("force-new-state", "true");
+            a.setAttribute("aria-label", "すべての履歴を管理");
+            a.setAttribute("aria-current", "false");
+            a.setAttribute("aria-disabled", "false");
+
+            // --- Icon wrapper ---
+            const iconDiv = document.createElement("div");
+            iconDiv.className = "yt-spec-button-shape-next__icon";
+            iconDiv.setAttribute("aria-hidden", "true");
+
+            const spanWrapper = document.createElement("span");
+            spanWrapper.className = "ytIconWrapperHost";
+            spanWrapper.style.width = "24px";
+            spanWrapper.style.height = "24px";
+
+            const iconShape = document.createElement("span");
+            iconShape.className = "yt-icon-shape ytSpecIconShapeHost";
+
+            const svgHolder = document.createElement("div");
+            svgHolder.style.width = "100%";
+            svgHolder.style.height = "100%";
+            svgHolder.style.display = "block";
+            svgHolder.style.fill = "currentcolor";
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            svg.setAttribute("width", "24");
+            svg.setAttribute("height", "24");
+            svg.setAttribute("viewBox", "0 0 24 24");
+            svg.setAttribute("focusable", "false");
+            svg.setAttribute("aria-hidden", "true");
+            svg.style.pointerEvents = "none";
+            svg.style.display = "inherit";
+            svg.style.width = "100%";
+            svg.style.height = "100%";
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d",
+                              "M12.844 1h-1.687a2 2 0 00-1.962 1.616 3 3 0 01-3.92 2.263 2 2 0 00-2.38.891l-.842 1.46a2 2 0 00.417 2.507 3 3 0 010 4.525 2 2 0 00-.417 2.507l.843 1.46a2 2 0 002.38.892 3.001 3.001 0 013.918 2.263A2 2 0 0011.157 23h1.686a2 2 0 001.963-1.615 3.002 3.002 0 013.92-2.263 2 2 0 002.38-.892l.842-1.46a2 2 0 00-.418-2.507 3 3 0 010-4.526 2 2 0 00.418-2.508l-.843-1.46a2 2 0 00-2.38-.891 3 3 0 01-3.919-2.263A2 2 0 0012.844 1Zm-1.767 2.347a6 6 0 00.08-.347h1.687a4.98 4.98 0 002.407 3.37 4.98 4.98 0 004.122.4l.843 1.46A4.98 4.98 0 0018.5 12a4.98 4.98 0 001.716 3.77l-.843 1.46a4.98 4.98 0 00-4.123.4A4.979 4.979 0 0012.843 21h-1.686a4.98 4.98 0 00-2.408-3.371 4.999 4.999 0 00-4.12-.399l-.844-1.46A4.979 4.979 0 005.5 12a4.98 4.98 0 00-1.715-3.77l.842-1.459a4.98 4.98 0 004.123-.399 4.981 4.981 0 002.327-3.025ZM16 12a4 4 0 11-7.999 0 4 4 0 018 0Zm-4 2a2 2 0 100-4 2 2 0 000 4Z"
+                             );
+
+            svg.appendChild(path);
+            svgHolder.appendChild(svg);
+            iconShape.appendChild(svgHolder);
+            spanWrapper.appendChild(iconShape);
+            iconDiv.appendChild(spanWrapper);
+
+            // --- Button label ---
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "yt-spec-button-shape-next__button-text-content";
+
+            const labelSpan = document.createElement("span");
+            labelSpan.className = "yt-core-attributed-string yt-core-attributed-string--white-space-no-wrap";
+            labelSpan.setAttribute("role", "text");
+            labelSpan.textContent = "Delete User Feedbacks";
+
+            labelDiv.appendChild(labelSpan);
+
+            // --- Touch feedback ---
+            const touch = document.createElement("yt-touch-feedback-shape");
+            touch.className = "yt-spec-touch-feedback-shape yt-spec-touch-feedback-shape--touch-response";
+            touch.setAttribute("aria-hidden", "true");
+
+            const stroke = document.createElement("div");
+            stroke.className = "yt-spec-touch-feedback-shape__stroke";
+
+            const fill = document.createElement("div");
+            fill.className = "yt-spec-touch-feedback-shape__fill";
+
+            touch.appendChild(stroke);
+            touch.appendChild(fill);
+
+            // --- assemble ---
+            a.appendChild(iconDiv);
+            a.appendChild(labelDiv);
+            a.appendChild(touch);
+            // outerDiv.append(a);
+
+            return a;
+        }
+
+        targetElem.appendChild(createCompactLink());
     }
-    new MutationObserver(scanTiles).observe(document.body, { childList: true, subtree: true });
+
+    function scanTargets() {
+        // attach buttons
+        document.querySelectorAll(TILE_SELECTOR).forEach((tile, idx) => attachButtons(tile, idx));
+
+        // attach User Feedback Link into History page
+        const pathName = location.pathname;
+        if (pathName == "/feed/history") {
+            const elem = document.querySelector("ytd-browse-feed-actions-renderer div#contents");
+            if (!elem || elem.hasAttribute(PROCESSED_ATTR)) return;
+            if (elem.children.length < 7) return;
+
+            elem.setAttribute(PROCESSED_ATTR, '1');
+            console.log("attachUserFeedbackLink");
+            attachUserFeedbackLink(elem);
+        }
+    }
+    new MutationObserver(scanTargets).observe(document.body, { childList: true, subtree: true });
 
 })();
