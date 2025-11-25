@@ -1,16 +1,21 @@
 // ==UserScript==
-// @name         YouTube Not Interested Button
-// @description  Click once to mark any YouTube video as "Not Interested" and remove your watch history.
-// @match        https://www.youtube.com/
-// @match        https://www.youtube.com/?*
-// @match        https://www.youtube.com/watch*
-// @match        https://www.youtube.com/feed/history
-// @grant        GM_addStyle
-// @run-at       document-idle
-// @version      0.1
-// @updateURL    https://raw.githubusercontent.com/tommyktech/YouTubeNotInterestedButton/refs/heads/main/src/YouTubeNotInterestedButton.user.js
-// @homepageURL  https://github.com/tommyktech/YouTubeNotInterestedButton
-// @supportURL   https://github.com/tommyktech/YouTubeNotInterestedButton/issues
+// @name           YouTube Not Interested Button
+// @name:ja        YouTube 「興味なし」ボタン
+// @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
+// @description    Click once to mark any YouTube video as "Not Interested" and remove your watch history.
+// @description:ja YouTubeの「興味なし」を1発で実行できるボタンを設置します
+// @match          https://www.youtube.com/
+// @match          https://www.youtube.com/?*
+// @match          https://www.youtube.com/watch*
+// @match          https://www.youtube.com/feed/history
+// @grant          GM_addStyle
+// @run-at         document-idle
+// @version        0.1
+// @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
+// @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
+// @license        Apache License 2.0
+// @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.user.js
+// @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.meta.js
 // ==/UserScript==
 GM_addStyle(`
   div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next {
