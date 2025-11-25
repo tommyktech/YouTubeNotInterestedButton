@@ -14,6 +14,11 @@ There are two buttons:
 
 Use this script to help adjust your YouTube recommendations.
 
+## Delete Watch History Button
+Buttons to delete each video on the watch-history page are also available!  
+
+<img width="647" height="473" alt="2025-11-25 163955" src="https://github.com/user-attachments/assets/13ef3583-52d2-4dcd-b6c4-932facecf189" />
+
 
 # Download URL
 <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js</a>
