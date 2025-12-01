@@ -13,13 +13,13 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.18
+// @version        0.19
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
 // @license        Apache License 2.0
-// @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.user.js
-// @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.meta.js
+// @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20%E2%80%9CNot%20Interested%E2%80%9D-related%20One-Click%20Buttons.user.js
+// @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20%E2%80%9CNot%20Interested%E2%80%9D-related%20One-Click%20Buttons.meta.js
 // ==/UserScript==
 /////////////// Modal ///////////////
 GM_addStyle(`
@@ -303,7 +303,7 @@ GM_addStyle(`
         box.appendChild(closeX);
 
         const title = document.createElement("h2");
-        title.textContent = "Not Interested Button Config";
+        title.textContent = "Not Interested Buttons Config";
 
         // Message area for save notification
         const msg = document.createElement("div");
@@ -318,21 +318,21 @@ GM_addStyle(`
         );
         const dont_recommend_channel_elem = createCheckbox(
             FLAG_DONT_RECOMMEND_CHANNEL,
-            "Don't Recommend",
+            "Don't Recommend Channel",
             true,
             DONT_RECOMMEND_CHANNEL_SVG_PATH
         );
         // already watched checkbox container
         const already_watched_elem = createCheckbox(
             FLAG_ALREADY_WATCHED,
-            "Already Watched",
+            "Not Interested -> Already Watched",
             true,
             ALREADY_WATCHED_SVG_PATH
         );
         // don't like checkbox container
         const dont_like_elem = createCheckbox(
             FLAG_DONT_LIKE,
-            "Don't Like",
+            "Not Interested -> Don't Like",
             true,
             DONT_LIKE_SVG_PATH
         );
