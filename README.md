@@ -1,23 +1,33 @@
-# YouTube Not Interested Button for Tampermonkey
+# YouTube “Not Interested”-related One-Click Buttons for Tampermonkey
 
 | Top Page | Watch Page |
 |--------------------|-------------------|
-| <img width="401" height="351" alt="screenshot" src="https://github.com/user-attachments/assets/8242ceb0-a5e2-4cfd-a8f2-f5679931472f" /> | <img width="422" height="269" alt="screenshot 2025-11-24 031732" src="https://github.com/user-attachments/assets/0b4268a1-66d0-480e-8d5b-1d026039cb34" /> |
+| <img width="405" height="350" alt="2025-12-01 234251-2" src="https://github.com/user-attachments/assets/5a28c7d9-cd29-428a-b1c7-fdfbb5ed4f9c" /> | <img width="427" height="108" alt=" 2025-12-01 234414-2" src="https://github.com/user-attachments/assets/3559955f-8717-41e8-8947-aaa23e4760ad" /> |
 
-Tampermonkey script to add "Not Interested" buttons to YouTube videos.   
+Tampermonkey script to add One-Click "Not Interested"-related buttons to YouTube videos.   
 It works on both the top page and the watch page.  
 
-There are two buttons:
+There are five buttons you can choose:
+- Not Interested
+- Already Watched
+- Don't Like
+- Don't Recommend
+- Delete History (in History Page)
 
-- The left button performs only the “Not Interested” action.
-- The right button performs the sequence: “Not Interested” → “Tell us why” → “I’ve already watched this video”.
+# Config Pane
+<img width="629" height="428" alt="image" src="https://github.com/user-attachments/assets/933ac77f-f38f-46ef-a485-289bb67aecfa" />
+You can toggle the visibility of the buttons in the Config Pane.
 
-Use this script to help adjust your YouTube recommendations.
+
 
 ## Delete Watch History Button
 Buttons to delete each video on the watch-history page are also available!  
 
-<img width="647" height="473" alt="2025-11-25 163955" src="https://github.com/user-attachments/assets/13ef3583-52d2-4dcd-b6c4-932facecf189" />
+<img width="654" height="440" alt=" 2025-12-02 003007-2" src="https://github.com/user-attachments/assets/cdbf50a8-ed16-4331-aff8-8e101d35d96c" />
+
+
+
+
 
 
 # Download URL
