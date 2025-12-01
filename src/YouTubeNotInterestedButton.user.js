@@ -1,16 +1,19 @@
 // ==UserScript==
-// @name           YouTube Not Interested Button
+// @name           YouTube Not Interested Buttons
 // @name:ja        YouTube 「興味なし」ボタン
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
-// @description    Click once to mark any YouTube video as "Not Interested" and remove your watch history.
-// @description:ja YouTubeの「興味なし」を1発で実行できるボタンを設置します
+// @description    Add one-click buttons for actions like "Not Interested" on YouTube.
+// @description:ja YouTubeの「興味なし」などを1発で実行できるボタンを設置します
 // @match          https://www.youtube.com/
 // @match          https://www.youtube.com/?*
 // @match          https://www.youtube.com/watch*
 // @match          https://www.youtube.com/feed/history
 // @grant          GM_addStyle
+// @grant          GM_registerMenuCommand
+// @grant          GM_getValue
+// @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.15
+// @version        0.17
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -18,6 +21,71 @@
 // @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.user.js
 // @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20Not%20Interested%20Button.meta.js
 // ==/UserScript==
+/////////////// Modal ///////////////
+GM_addStyle(`
+  #tm-config-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999999;
+    widht:100%;
+    height:100%;
+  }
+  #tm-config-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 32px 32px 16px 32px;
+    padding-top: 30px;
+    border-radius: 8px;
+    width: 400px;
+    font-size: 18px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+    z-index: 9999998;
+  }
+  #tm-config-content h2 {
+    margin: 0 0 16px 0;
+    text-align: left;
+  }
+  #tm-config-content label {
+    display: block;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  #tm-config-msg {
+    font-size: 18px;
+  }
+  #tm-config-close {
+    position: absolute;
+    top: 3px;
+    right: 16px;
+    cursor: pointer;
+    font-size: 32px;
+    font-weight: bold;
+  }
+  #tm-config-msg {
+    color: green;
+    margin-bottom: 8px;
+    height: 18px;
+  }
+
+  #tm-reload-btn {
+    margin-left: 8px;
+    right: 18px;
+    position: absolute;
+    bottom: 16px;
+    width: 100px;
+    height: 30px;
+    font-size: 18px;
+  }
+`);
+
+/////////////// Buttons ///////////////
 GM_addStyle(`
   div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next {
     width: 60px !important;
@@ -27,68 +95,311 @@ GM_addStyle(`
     width: 50px !important;
     height: 50px !important;
   }
-  .additional-btn {
+  .additional_button_container {
     position: absolute;
-    font-size: 28px;
-    padding: 2px;
-    margin-right: 4px;
+    padding: 0px;
+    margin-right: 0px;
     border: none;
-    background: transparent;
-    height: 24px;
-    width: 48px;
+    bottom: 0px;
+    right: 0px;
+  }
+  .delete_history_button_container {
+    position: absolute;
+    padding: 0px;
+    margin-right: 6px;
+    border: none;
+    top: 34px;
+    right: 0px;
+  }
+  .additional-btn {
+    position: relative;
+    font-size: 28px;
+    height: 40px;
+    width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     //opacity: 0.5;
+    float: left;
+    background: transparent;
+    border: none;
+    padding-top: 24px;
+    z-index: 2000;
+  }
+  yt-lockup-view-model > div.additional_button_container > button.additional-btn {
+    padding-top: 0px;
+  }
+  .delete_history_button_container > button {
+    padding-top: 0px;
+    width: 31px;
   }
 
   .additional-btn span {
-    //background: rgba(0,0,0,0.6);
     padding: 0px;
     height: 34px;
     width: 34px;
     font-size: 30;
-    // border-radius: 4px;
     color: white;
   }
 
   .additional-btn svg {
-    //background: rgba(0,0,0,0.6);
     padding: 0px;
     height: 28px;
     width: 28px;
-    //border-radius: 4px;
     stroke: gray;
     fill: gray;
     stroke-width:0.5px;
   }
 
-  .read-btn {
-    right: 0px;
-    bottom: 0px;
-  //  top: 40px;
-    z-index: 2000;
-  }
+/* チェックボックス全体 */
+.tm-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
 
-  .not-interested-in-btn {
-    right: 40px;
-    bottom: 0px;
-//    top: 70px;
-    z-index: 2000;
-  }
-
-  .delete-history-btn {
-    right: 0px;
-    top: 40px;
-    z-index:2000;
-    width: 30px;
-  }
-
+/* SVG アイコン */
+.tm-checkbox-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: currentColor;
+    vertical-align: middle;
+    margin: 0 4px 3px 4px;
+}
 `);
 
 (function () {
     'use strict';
 
+    /////////////////////////////////////////////////// Config Modal //////////////////////////////////////////////////////
+    let installed_flag = "installed_v0.17";
+    const installed = GM_getValue(installed_flag, false);
+    GM_registerMenuCommand("Open Config", openConfigModal);
+
+    if (!installed) {
+        GM_setValue(installed_flag, true);
+        window.addEventListener("load", () => openConfigModal());
+    }
+
+    let saveMsgTimer = null;
+    const FLAG_NOT_INTERESTED = "flag_not_interested";
+    const FLAG_DONT_RECOMMEND_CHANNEL = "flag_dont_recommend_channel";
+    const FLAG_ALREADY_WATCHED = "flag_already_watched";
+    const FLAG_DONT_LIKE = "flag_dont_like";
+    const FLAG_DELETE_HISTORY = "flag_delete_history";
+    // SVG PATH LIST
+    const DONT_RECOMMEND_CHANNEL_SVG_PATH = "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 110 18.001A9 9 0 0112 3Zm4 8H8a1 1 0 000 2h8a1 1 0 000-2Z";
+    const NOT_INTERESTED_SVG_PATH = "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z";
+    const ALREADY_WATCHED_SVG_PATH = "m6.666 5.303 2.122 1.272c4.486-1.548 10.002.26 12.08 5.426-.2.5-.435.968-.696 1.406l1.717 1.03c.41-.69.752-1.42 1.02-2.178a.77.77 0 000-.516l-.18-.473C19.998 4.436 12.294 2.448 6.667 5.303Zm-5.524.183a1.003 1.003 0 00.343 1.371l1.8 1.08a11.8 11.8 0 00-2.193 3.805.77.77 0 000 .516c2.853 8.041 12.37 9.784 18.12 5.235l2.273 1.364a1 1 0 101.03-1.714l-20-12a1 1 0 00-1.373.343Zm11.064 2.52L12 8c-.248 0-.49.022-.727.066l4.54 2.724a4 4 0 00-3.607-2.785ZM5.04 8.99l3.124 1.874C8.057 11.224 8 11.606 8 12l.005.206a4 4 0 003.79 3.79L12 16c1.05 0 2.057-.414 2.803-1.152l2.54 1.524C12.655 19.48 5.556 18.024 3.133 12A9.6 9.6 0 015.04 8.99ZM10 12v-.033l2.967 1.78a1.99 1.99 0 01-2.307-.262 2 2 0 01-.65-1.28L10 12Z";
+    const DONT_LIKE_SVG_PATH = "m11.31 2 .392.007c1.824.06 3.61.534 5.223 1.388l.343.189.27.154c.264.152.56.24.863.26l.13.004H20.5a1.5 1.5 0 011.5 1.5V11.5a1.5 1.5 0 01-1.5 1.5h-1.79l-.158.013a1 1 0 00-.723.512l-.064.145-2.987 8.535a1 1 0 01-1.109.656l-1.04-.174a4 4 0 01-3.251-4.783L10 15H5.938a3.664 3.664 0 01-3.576-2.868A3.682 3.682 0 013 9.15l-.02-.088A3.816 3.816 0 014 5.5v-.043l.008-.227a2.86 2.86 0 01.136-.664l.107-.28A3.754 3.754 0 017.705 2h3.605ZM7.705 4c-.755 0-1.425.483-1.663 1.2l-.032.126a.818.818 0 00-.01.131v.872l-.587.586a1.816 1.816 0 00-.524 1.465l.038.23.02.087.21.9-.55.744a1.686 1.686 0 00-.321 1.18l.029.177c.17.76.844 1.302 1.623 1.302H10a2.002 2.002 0 011.956 2.419l-.623 2.904-.034.208a2.002 2.002 0 001.454 2.139l.206.045.21.035 2.708-7.741A3.001 3.001 0 0118.71 11H20V6.002h-1.47c-.696 0-1.38-.183-1.985-.528l-.27-.155-.285-.157A10.002 10.002 0 0011.31 4H7.705Z";
+    const DELETE_STORY_SVG_PATH = "M19 3h-4V2a1 1 0 00-1-1h-4a1 1 0 00-1 1v1H5a2 2 0 00-2 2h18a2 2 0 00-2-2ZM6 19V7H4v12a4 4 0 004 4h8a4 4 0 004-4V7h-2v12a2 2 0 01-2 2H8a2 2 0 01-2-2Zm4-11a1 1 0 00-1 1v8a1 1 0 102 0V9a1 1 0 00-1-1Zm4 0a1 1 0 00-1 1v8a1 1 0 002 0V9a1 1 0 00-1-1Z";
+
+
+    // create check boxes
+
+    function createCheckboxOld(id, labelText, defaultValue, svgPath) {
+        const container = document.createElement("label");
+        container.style.display = "block";
+        container.style.marginBottom = "8px";
+        container.style.cursor = "pointer";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = id;
+        checkbox.checked = GM_getValue(id, defaultValue);
+
+        // Save immediately when toggled
+        checkbox.addEventListener("change", () => {
+            GM_setValue(id, checkbox.checked);
+            showSavedMessage();
+
+            // Reload ボタンを有効化
+            const reloadBtn = document.getElementById("tm-reload-btn");
+            if (reloadBtn) reloadBtn.removeAttribute("disabled");
+        });
+
+        const span = document.createElement("span");
+        span.textContent = " " + labelText;
+
+        // append svg
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(SVG_NS, "svg");
+        const path = document.createElementNS(SVG_NS, "path");
+
+        // ここが最重要
+        svg.setAttributeNS(null, "viewBox", "0 0 24 24");
+
+        // 念のため width/height も設定
+        svg.setAttributeNS(null, "width", "24");
+        svg.setAttributeNS(null, "height", "24");
+
+        svg.classList.add("tm-checkbox-icon");
+
+        path.setAttribute("d", svgPath);
+        svg.appendChild(path);
+        span.appendChild(svg);
+
+        container.appendChild(checkbox);
+        container.appendChild(span);
+
+        return container;
+    }
+
+    function createCheckbox(id, labelText, defaultValue, svgPath) {
+        const container = document.createElement("label");
+        container.className = "tm-checkbox";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = id;
+        checkbox.checked = GM_getValue(id, defaultValue);
+
+        checkbox.addEventListener("change", () => {
+            GM_setValue(id, checkbox.checked);
+            showSavedMessage();
+
+            const reloadBtn = document.getElementById("tm-reload-btn");
+            if (reloadBtn) reloadBtn.removeAttribute("disabled");
+        });
+
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(SVG_NS, "svg");
+        svg.classList.add("tm-checkbox-icon");
+        svg.setAttributeNS(null, "viewBox", "0 0 24 24");
+
+        const path = document.createElementNS(SVG_NS, "path");
+        path.setAttribute("d", svgPath);
+
+        svg.appendChild(path);
+
+        const textSpan = document.createElement("span");
+        textSpan.textContent = labelText;
+
+        container.appendChild(checkbox);
+        container.appendChild(svg);
+        container.appendChild(textSpan);
+
+        return container;
+    }
+
+
+    function openConfigModal() {
+        if (document.getElementById("tm-config-overlay")) return;
+
+        const overlay = document.createElement("div");
+        overlay.id = "tm-config-overlay";
+
+        const box = document.createElement("div");
+        box.id = "tm-config-content";
+
+        // X Button
+        const closeX = document.createElement("div");
+        closeX.id = "tm-config-close";
+        closeX.textContent = "×";
+        closeX.addEventListener("click", () => overlay.remove());
+        box.appendChild(closeX);
+
+        const title = document.createElement("h2");
+        title.textContent = "Not Interested Button Config";
+
+        // Message area for save notification
+        const msg = document.createElement("div");
+        msg.id = "tm-config-msg";
+
+        // not interested checkbox container
+        const not_interested_elem = createCheckbox(
+            FLAG_NOT_INTERESTED,
+            "Not Interested",
+            true,
+            NOT_INTERESTED_SVG_PATH
+        );
+        const dont_recommend_channel_elem = createCheckbox(
+            FLAG_DONT_RECOMMEND_CHANNEL,
+            "Don't Recommend",
+            true,
+            DONT_RECOMMEND_CHANNEL_SVG_PATH
+        );
+        // already watched checkbox container
+        const already_watched_elem = createCheckbox(
+            FLAG_ALREADY_WATCHED,
+            "Already Watched",
+            true,
+            ALREADY_WATCHED_SVG_PATH
+        );
+        // don't like checkbox container
+        const dont_like_elem = createCheckbox(
+            FLAG_DONT_LIKE,
+            "Don't Like",
+            true,
+            DONT_LIKE_SVG_PATH
+        );
+
+        // delete history checkbox container
+        const delete_history_elem = createCheckbox(
+            FLAG_DELETE_HISTORY,
+            "Delete History (in History page)",
+            true,
+            DELETE_STORY_SVG_PATH
+        );
+        const reloadBtn = document.createElement("button");
+        reloadBtn.id = "tm-reload-btn";
+        reloadBtn.textContent = "Reload";
+        // reloadBtn.disabled = true;   // 初期は無効
+        reloadBtn.setAttribute("disabled", "disabled");
+        reloadBtn.addEventListener("click", () => location.reload());
+
+        // DOM
+        box.appendChild(title);
+        box.appendChild(not_interested_elem);
+        box.appendChild(already_watched_elem);
+        box.appendChild(dont_like_elem);
+        box.appendChild(dont_recommend_channel_elem);
+        box.appendChild(delete_history_elem);
+        box.appendChild(msg);
+        box.appendChild(reloadBtn);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // Close modal with ESC key
+        function escClose(e) {
+            if (e.key === "Escape") {
+                overlay.remove();
+                document.removeEventListener("keydown", escClose);
+            }
+        }
+        document.addEventListener("keydown", escClose);
+
+        // Close modal when clicking outside
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+    }
+
+    // Show "Saved" message for only 3 seconds
+    function showSavedMessage() {
+        const msg = document.getElementById("tm-config-msg");
+        if (!msg) return;
+
+        // Clear existing timer
+        if (saveMsgTimer !== null) {
+            clearTimeout(saveMsgTimer);
+            saveMsgTimer = null;
+        }
+
+        msg.textContent = "Saved";
+
+        saveMsgTimer = setTimeout(() => {
+            msg.textContent = "";
+            saveMsgTimer = null;
+        }, 3000);
+    }
+
+
+    ///////////////////////////////////////////////// Append Not Interested Buttons //////////////////////////////////////////////////////
     var TILE_SELECTOR = 'yt-lockup-view-model';
     var MENU_BUTTON_SELECTOR = 'div.yt-lockup-metadata-view-model__menu-button button-view-model button';
     var MENU_SELECTOR = 'ytd-popup-container tp-yt-iron-dropdown';
@@ -197,35 +508,25 @@ GM_addStyle(`
         return true;
     }
 
-    // attach 'Not Interested' button
-    function attachNotInterestedInButton(tile) {
-        const tileClassList = tile.classList
-
-        // selector for original 'Not Interested'
-        var svgPathData = "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z";
-        var SVG_SELECTOR = `path[d="${svgPathData}"]`
+    function attachShortcutButton(tile, btnContainer, svgPath, className, overlayMessage) {
+        var SVG_SELECTOR = `path[d="${svgPath}"]`
 
         // attach a custom 'Not Interested' button
-        const notInterestedBtn = document.createElement('button');
-        notInterestedBtn.className = 'additional-btn not-interested-in-btn';
+        const btn = document.createElement('button');
+        btn.classList.add('additional-btn');
+        if (className) btn.classList.add(className);
 
         // create an SVG for the button
         const SVG_NS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(SVG_NS, "svg");
         const path = document.createElementNS(SVG_NS, "path");
-        path.setAttribute("d", "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z");
+        path.setAttribute("d", svgPath);
         svg.appendChild(path);
-        notInterestedBtn.appendChild(svg);
-        if (tileClassList.contains("ytd-rich-item-renderer")) {
-            // top page
-            tile.parentElement.appendChild(notInterestedBtn);
-        } else if (tileClassList.contains("ytd-item-section-renderer")) {
-            // watch page
-            tile.appendChild(notInterestedBtn);
-        }
+        btn.appendChild(svg);
+        btnContainer.appendChild(btn);
 
         // add eventlistener
-        function onNotInterestedInButtonClick(ev) {
+        function onButtonClick(ev) {
             ev.preventDefault();
             ev.stopPropagation();
             const menuBtn = tile.querySelector(MENU_BUTTON_SELECTOR);
@@ -245,45 +546,42 @@ GM_addStyle(`
                     console.debug("svg_el:", svg_el)
                     const result = dispatchTapLike(svg_el.parentElement.parentElement)
                     if (result) {
-                        showOverlay('Sent "Not Interested"');
+                        showOverlay(overlayMessage);
+                        btnContainer.style.display = "none";
                     }
                 });
             });
         };
-        notInterestedBtn.addEventListener('click', function(ev) {
-            onNotInterestedInButtonClick(ev);
+        btn.addEventListener('click', function(ev) {
+            onButtonClick(ev);
         });
     }
 
+    // already watched
+    // "m6.666 5.303 2.122 1.272c4.486-1.548 10.002.26 12.08 5.426-.2.5-.435.968-.696 1.406l1.717 1.03c.41-.69.752-1.42 1.02-2.178a.77.77 0 000-.516l-.18-.473C19.998 4.436 12.294 2.448 6.667 5.303Zm-5.524.183a1.003 1.003 0 00.343 1.371l1.8 1.08a11.8 11.8 0 00-2.193 3.805.77.77 0 000 .516c2.853 8.041 12.37 9.784 18.12 5.235l2.273 1.364a1 1 0 101.03-1.714l-20-12a1 1 0 00-1.373.343Zm11.064 2.52L12 8c-.248 0-.49.022-.727.066l4.54 2.724a4 4 0 00-3.607-2.785ZM5.04 8.99l3.124 1.874C8.057 11.224 8 11.606 8 12l.005.206a4 4 0 003.79 3.79L12 16c1.05 0 2.057-.414 2.803-1.152l2.54 1.524C12.655 19.48 5.556 18.024 3.133 12A9.6 9.6 0 015.04 8.99ZM10 12v-.033l2.967 1.78a1.99 1.99 0 01-2.307-.262 2 2 0 01-.65-1.28L10 12Z"
+    // dont like
+    // m11.31 2 .392.007c1.824.06 3.61.534 5.223 1.388l.343.189.27.154c.264.152.56.24.863.26l.13.004H20.5a1.5 1.5 0 011.5 1.5V11.5a1.5 1.5 0 01-1.5 1.5h-1.79l-.158.013a1 1 0 00-.723.512l-.064.145-2.987 8.535a1 1 0 01-1.109.656l-1.04-.174a4 4 0 01-3.251-4.783L10 15H5.938a3.664 3.664 0 01-3.576-2.868A3.682 3.682 0 013 9.15l-.02-.088A3.816 3.816 0 014 5.5v-.043l.008-.227a2.86 2.86 0 01.136-.664l.107-.28A3.754 3.754 0 017.705 2h3.605ZM7.705 4c-.755 0-1.425.483-1.663 1.2l-.032.126a.818.818 0 00-.01.131v.872l-.587.586a1.816 1.816 0 00-.524 1.465l.038.23.02.087.21.9-.55.744a1.686 1.686 0 00-.321 1.18l.029.177c.17.76.844 1.302 1.623 1.302H10a2.002 2.002 0 011.956 2.419l-.623 2.904-.034.208a2.002 2.002 0 001.454 2.139l.206.045.21.035 2.708-7.741A3.001 3.001 0 0118.71 11H20V6.002h-1.47c-.696 0-1.38-.183-1.985-.528l-.27-.155-.285-.157A10.002 10.002 0 0011.31 4H7.705Z
     // attach 'Already Watched' button
-    function attachWatchedButton(tile) {
-        const tileClassList = tile.classList
-
+    function attachTellUsWhyButton(tile, btnContainer, btnSvgPath, isAlreadyWatched) {
         // selector for original 'Not Interested' button
         var svgPathData = "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z";
         var SVG_SELECTOR = `path[d="${svgPathData}"]`
 
         // attach a custom 'Already Watched' button
-        const readBtn = document.createElement('button');
-        readBtn.className = 'additional-btn read-btn';
+        const btn = document.createElement('button');
+        btn.className = 'additional-btn';
 
         // create an SVG for the button
         const SVG_NS = "http://www.w3.org/2000/svg";
         const hide_svg = document.createElementNS(SVG_NS, "svg");
         const hide_path1 = document.createElementNS(SVG_NS, "path");
-        hide_path1.setAttribute("d", "m6.666 5.303 2.122 1.272c4.486-1.548 10.002.26 12.08 5.426-.2.5-.435.968-.696 1.406l1.717 1.03c.41-.69.752-1.42 1.02-2.178a.77.77 0 000-.516l-.18-.473C19.998 4.436 12.294 2.448 6.667 5.303Zm-5.524.183a1.003 1.003 0 00.343 1.371l1.8 1.08a11.8 11.8 0 00-2.193 3.805.77.77 0 000 .516c2.853 8.041 12.37 9.784 18.12 5.235l2.273 1.364a1 1 0 101.03-1.714l-20-12a1 1 0 00-1.373.343Zm11.064 2.52L12 8c-.248 0-.49.022-.727.066l4.54 2.724a4 4 0 00-3.607-2.785ZM5.04 8.99l3.124 1.874C8.057 11.224 8 11.606 8 12l.005.206a4 4 0 003.79 3.79L12 16c1.05 0 2.057-.414 2.803-1.152l2.54 1.524C12.655 19.48 5.556 18.024 3.133 12A9.6 9.6 0 015.04 8.99ZM10 12v-.033l2.967 1.78a1.99 1.99 0 01-2.307-.262 2 2 0 01-.65-1.28L10 12Z");
+        hide_path1.setAttribute("d", btnSvgPath);
         hide_svg.appendChild(hide_path1)
-        readBtn.appendChild(hide_svg);
-        if (tileClassList.contains("ytd-rich-item-renderer")) {
-            // top page
-            tile.parentElement.appendChild(readBtn);
-        } else if (tileClassList.contains("ytd-item-section-renderer")) {
-            // watch page
-            tile.appendChild(readBtn);
-        }
+        btn.appendChild(hide_svg);
+        btnContainer.append(btn);
 
         // add eventlistener for the button
-        function onReadButtonClick(ev) {
+        function onClick(ev) {
             ev.preventDefault();
             ev.stopPropagation();
             const menuBtn = tile.querySelector(MENU_BUTTON_SELECTOR);
@@ -324,7 +622,10 @@ GM_addStyle(`
                     const REASON_DIALOG_SELECTOR = "tp-yt-paper-dialog";
                     const dialog_el = await waitForElement(REASON_DIALOG_SELECTOR);
 
-                    const CHECKBOX_SELECTOR = "ytd-dismissal-follow-up-renderer div#content div#reasons ytd-dismissal-reason-text-renderer:nth-child(1) tp-yt-paper-checkbox:nth-child(1)";
+                    let CHECKBOX_SELECTOR = "ytd-dismissal-follow-up-renderer div#content div#reasons ytd-dismissal-reason-text-renderer:nth-child(1) tp-yt-paper-checkbox:nth-child(1)";
+                    if (!isAlreadyWatched) {
+                        CHECKBOX_SELECTOR = "ytd-dismissal-follow-up-renderer div#content div#reasons ytd-dismissal-reason-text-renderer:nth-child(2) tp-yt-paper-checkbox:nth-child(1)";
+                    }
                     const checkbox_el = await waitForElement(CHECKBOX_SELECTOR, dialog_el);
                     console.debug("click the checkbox:", checkbox_el);
                     dispatchTapLike(checkbox_el);
@@ -333,91 +634,68 @@ GM_addStyle(`
                     const SUBMIT_BUTTON_SELECTOR = "ytd-dismissal-follow-up-renderer div#buttons ytd-button-renderer#submit"
                     const submit_button = await waitForElement(SUBMIT_BUTTON_SELECTOR, dialog_el);
                     const result = dispatchTapLike(submit_button);
-                    showOverlay(result? 'Sent "Already Watched"':'Failed to send "Already Watched"');
+                    if (result) {
+                        showOverlay(result? 'Sent "Already Watched"':'Failed to send "Already Watched"');
+                        btnContainer.style.display = "none";
+                    }
                 } catch (err) {
                     console.error("Error:", err);
                 }
             })();
         }
-        readBtn.addEventListener('click', function(ev) {
-            onReadButtonClick(ev);
-        });
-    }
-
-    // attach delete history button
-    function attachDeleteHistoryButton(tile) {
-        const tileClassList = tile.classList
-
-        // Selector for 'Remove from watch history' icon
-        var svgPathData = "M19 3h-4V2a1 1 0 00-1-1h-4a1 1 0 00-1 1v1H5a2 2 0 00-2 2h18a2 2 0 00-2-2ZM6 19V7H4v12a4 4 0 004 4h8a4 4 0 004-4V7h-2v12a2 2 0 01-2 2H8a2 2 0 01-2-2Zm4-11a1 1 0 00-1 1v8a1 1 0 102 0V9a1 1 0 00-1-1Zm4 0a1 1 0 00-1 1v8a1 1 0 002 0V9a1 1 0 00-1-1Z";
-        var SVG_SELECTOR = `path[d="${svgPathData}"]`
-
-        // add a custom 'Remove history' button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'additional-btn delete-history-btn';
-        const SVG_NS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(SVG_NS, "svg");
-        const path = document.createElementNS(SVG_NS, "path");
-        path.setAttribute("d", "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z");
-        svg.appendChild(path);
-        deleteBtn.appendChild(svg);
-        if (tileClassList.contains("ytd-rich-item-renderer")) {
-            // top page
-            tile.parentElement.appendChild(deleteBtn);
-        } else if (tileClassList.contains("ytd-item-section-renderer")) {
-            // watch page
-            tile.appendChild(deleteBtn);
-        }
-
-        // add event listener
-        function onDeleteButtonClick(ev) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            const menuBtn = tile.querySelector(MENU_BUTTON_SELECTOR);
-            if (!menuBtn) {
-                console.warn('menu button not found');
-                return;
-            }
-
-            // wait for menu to appear
-            dispatchTapLike(menuBtn);
-
-            // check if the menu is displayed
-            waitForElement(MENU_SELECTOR).then(dropdown_el => {
-                console.debug("dropdown_el:", dropdown_el)
-                // Check if the target element has appeared
-                waitForElement(SVG_SELECTOR, dropdown_el).then(svg_el => {
-                    console.debug("svg_el:", svg_el)
-                    const result = dispatchTapLike(svg_el.parentElement.parentElement)
-                    if (result) {
-                        showOverlay('Sent "Delete History"');
-                    }
-                });
-            });
-        };
-        deleteBtn.addEventListener('click', function(ev) {
-            onDeleteButtonClick(ev);
+        btn.addEventListener('click', function(ev) {
+            onClick(ev);
         });
     }
 
     // Attach custom buttons
     function attachButtons(tile, idx) {
-        const tileRect = tile.getBoundingClientRect();
-
+        // check if already processed
         if (!tile || tile.hasAttribute(PROCESSED_ATTR)) return;
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
-        const pathName = location.pathname;
+        // append button container
+        const btnContainerName = "additional_button_container";
+        const btnContainer = document.createElement('div');
+        btnContainer.className = btnContainerName;
 
+        const pathName = location.pathname;
+        const tileClassList = tile.classList
+        if (tileClassList.contains("ytd-rich-item-renderer")) {
+            // top page
+            tile.parentElement.appendChild(btnContainer);
+        } else if (tileClassList.contains("ytd-item-section-renderer")) {
+            if (pathName == "/feed/history") {
+                btnContainer.className = "delete_history_button_container";
+            }
+            tile.appendChild(btnContainer);
+        }
+
+        // attach buttons
         if (pathName == "/" || pathName == "/watch") {
-            attachNotInterestedInButton(tile);
-            attachWatchedButton(tile);
+            if (GM_getValue(FLAG_DONT_RECOMMEND_CHANNEL, true)) {
+                attachShortcutButton(tile, btnContainer, DONT_RECOMMEND_CHANNEL_SVG_PATH, "", 'Sent "Don\' Recommend Channel"');
+            }
+            if (GM_getValue(FLAG_NOT_INTERESTED, true)) {
+                attachShortcutButton(tile, btnContainer, NOT_INTERESTED_SVG_PATH, "", 'Sent "Not Interested"');
+            }
+
+            if (GM_getValue(FLAG_ALREADY_WATCHED, true)) {
+                attachTellUsWhyButton(tile, btnContainer, ALREADY_WATCHED_SVG_PATH, true);
+            }
+            if (GM_getValue(FLAG_DONT_LIKE, true)) {
+                attachTellUsWhyButton(tile, btnContainer, DONT_LIKE_SVG_PATH, false);
+            }
+
         } else if (pathName == "/feed/history") {
-            attachDeleteHistoryButton(tile);
+            if (GM_getValue(FLAG_DELETE_HISTORY, true)) {
+                attachShortcutButton(tile, btnContainer, DELETE_STORY_SVG_PATH, "delete-history-btn", 'Sent "Delete History"');
+            }
         }
     }
 
+    // attach a link to "User Feedback" page in History page
     function attachUserFeedbackLink(targetElem) {
         function createCompactLink() {
             // const outerDiv = document.createElement("div");
