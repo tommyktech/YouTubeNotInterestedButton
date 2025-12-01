@@ -9,13 +9,15 @@ It works on both the top page and the watch page.
 
 There are five buttons you can choose:
 - Not Interested
-- Already Watched
-- Don't Like
-- Don't Recommend
+- Not Interested -> Already Watched
+- Not Interested -> Don't Like
+- Don't Recommend Channel
 - Delete History (in History Page)
 
 # Config Pane
-<img width="629" height="428" alt="image" src="https://github.com/user-attachments/assets/933ac77f-f38f-46ef-a485-289bb67aecfa" />
+<img width="577" height="383" alt="image" src="https://github.com/user-attachments/assets/e8f4a2a7-6d88-4b56-bd63-c47c9f7ace90" />
+
+
 You can toggle the visibility of the buttons in the Config Pane.
 
 
