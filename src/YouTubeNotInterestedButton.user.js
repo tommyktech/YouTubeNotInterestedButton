@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name           YouTube Not Interested Buttons
+// @name           YouTube “Not Interested”-related One-Click Buttons
 // @name:ja        YouTube 「興味なし」ボタン
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
 // @description    Add one-click buttons for actions like "Not Interested" on YouTube.
@@ -13,7 +13,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.17
+// @version        0.18
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
