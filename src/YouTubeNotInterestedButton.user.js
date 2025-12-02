@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name           YouTube “Not Interested”-related One-Click Buttons
+// @name           YouTube "Not Interested"-related One-Click Buttons
 // @name:ja        YouTube 「興味なし」ボタン
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
 // @description    Add one-click buttons for actions like "Not Interested" on YouTube.
@@ -13,7 +13,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.19
+// @version        0.22
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -95,14 +95,6 @@ GM_addStyle(`
     width: 50px !important;
     height: 50px !important;
   }
-  .additional_button_container {
-    position: absolute;
-    padding: 0px;
-    margin-right: 0px;
-    border: none;
-    bottom: 0px;
-    right: 0px;
-  }
   .delete_history_button_container {
     position: absolute;
     padding: 0px;
@@ -111,41 +103,64 @@ GM_addStyle(`
     top: 34px;
     right: 0px;
   }
+  .additional_button_container {
+    // position: absolute;
+    padding: 0px;
+    margin-right: 0px;
+    border: none;
+    bottom: 0px;
+    right: 0px;
+    display: flex;
+    justify-content: flex-end; /* 横方向の右寄せ */
+
+  }
   .additional-btn {
     position: relative;
-    font-size: 28px;
-    height: 40px;
-    width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    //opacity: 0.5;
     float: left;
     background: transparent;
     border: none;
-    padding-top: 24px;
     z-index: 2000;
+    cursor: pointer;
+    padding: 6px 9px 6px 8px;
   }
-  yt-lockup-view-model > div.additional_button_container > button.additional-btn {
-    padding-top: 0px;
+  div.yt-lockup-metadata-view-model__text-container {
+    width:100%;
   }
+
+  /* align button container to the right */
+  .yt-content-metadata-view-model__metadata-row {
+    display: flex;
+    align-items: center;
+  }
+  .additional_button_container {
+    margin-left: auto;
+  }
+
+  /* // delete "New" badge
+  yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(3) {
+    display: none !important;
+  }
+  */
+
+  a.yt-lockup-metadata-view-model__title {
+    line-height: 1.8rem;
+  }
+  span.yt-content-metadata-view-model__metadata-text {
+    line-height: 1.4rem;
+  }
+
   .delete_history_button_container > button {
     padding-top: 0px;
     width: 31px;
   }
 
-  .additional-btn span {
-    padding: 0px;
-    height: 34px;
-    width: 34px;
-    font-size: 30;
-    color: white;
-  }
-
   .additional-btn svg {
     padding: 0px;
-    height: 28px;
-    width: 28px;
+    height: 24px;
+    width: 24px;
     stroke: gray;
     fill: gray;
     stroke-width:0.5px;
@@ -664,12 +679,14 @@ GM_addStyle(`
         const tileClassList = tile.classList
         if (tileClassList.contains("ytd-rich-item-renderer")) {
             // top page
-            tile.parentElement.appendChild(btnContainer);
+            // tile.parentElement.querySelector("yt-lockup-view-model yt-content-metadata-view-model").appendChild(btnContainer);
+            tile.parentElement.querySelector("yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child").appendChild(btnContainer);
         } else if (tileClassList.contains("ytd-item-section-renderer")) {
             if (pathName == "/feed/history") {
                 btnContainer.className = "delete_history_button_container";
             }
-            tile.appendChild(btnContainer);
+            tile.querySelector("div.yt-lockup-view-model__metadata").appendChild(btnContainer);
+            // tile.appendChild(btnContainer);
         }
 
         // attach buttons
