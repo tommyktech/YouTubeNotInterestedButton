@@ -1,4 +1,4 @@
-# YouTube “Not Interested”-related One-Click Buttons for Tampermonkey
+# YouTube “Not Interested”-related One-Click Buttons
 
 | Top Page | Watch Page |
 |--------------------|-------------------|
@@ -18,11 +18,11 @@ There are five buttons you can choose:
 <img width="577" height="383" alt="image" src="https://github.com/user-attachments/assets/e8f4a2a7-6d88-4b56-bd63-c47c9f7ace90" />
 
 
-You can toggle the visibility of the buttons in the Config Pane.
+You can toggle the visibility of the buttons in the config pane.
 
 
 
-## Delete Watch History Button
+# Delete Watch History Button
 Buttons to delete each video on the watch-history page are also available!  
 
 <img width="654" height="440" alt=" 2025-12-02 003007-2" src="https://github.com/user-attachments/assets/cdbf50a8-ed16-4331-aff8-8e101d35d96c" />
@@ -33,7 +33,7 @@ Buttons to delete each video on the watch-history page are also available!
 
 
 # Download URL
-- <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">GitHub (here)</a>
+- <a href="https://github.com/tommyktech/YouTubeNotInterestedButton/raw/refs/heads/main/src/YouTubeNotInterestedButton.user.js">GitHub</a>
 - <a href="https://greasyfork.org/en/scripts/556867-youtube-not-interested-button">Greasy Fork</a>
 
 # Download QR Code
