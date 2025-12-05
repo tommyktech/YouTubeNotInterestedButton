@@ -4,7 +4,7 @@
 |--------------------|-------------------|
 | <img width="405" height="350" alt="2025-12-01 234251-2" src="https://github.com/user-attachments/assets/5a28c7d9-cd29-428a-b1c7-fdfbb5ed4f9c" /> | <img width="427" height="108" alt=" 2025-12-01 234414-2" src="https://github.com/user-attachments/assets/3559955f-8717-41e8-8947-aaa23e4760ad" /> |
 
-![Demo](./assets/ezgif-18df5ae739b7fc0d.gif)
+<img  alt=" 2025-12-01 234414-2" src="https://github.com/tommyktech/YouTubeNotInterestedButton/blob/main/assets/ezgif-18df5ae739b7fc0d.gif?raw=true" />
 
 Tampermonkey script to add One-Click "Not Interested"-related buttons to YouTube videos.   
 It works on both the top page and the watch page.  
@@ -17,7 +17,7 @@ There are five buttons you can choose:
 - Delete History (in History Page)
 
 # Config Pane
-<img width="577" height="383" alt="image" src="https://github.com/user-attachments/assets/e8f4a2a7-6d88-4b56-bd63-c47c9f7ace90" />
+<img width="577" height="383" alt="image" src="https://s1.ezgif.com/tmp/ezgif-18df5ae739b7fc0d.gif" />
 
 
 You can toggle the visibility of the buttons in the config pane.
