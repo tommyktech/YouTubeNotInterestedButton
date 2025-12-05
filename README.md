@@ -4,6 +4,7 @@
 |--------------------|-------------------|
 | <img width="405" height="350" alt="2025-12-01 234251-2" src="https://github.com/user-attachments/assets/5a28c7d9-cd29-428a-b1c7-fdfbb5ed4f9c" /> | <img width="427" height="108" alt=" 2025-12-01 234414-2" src="https://github.com/user-attachments/assets/3559955f-8717-41e8-8947-aaa23e4760ad" /> |
 
+### Demonstrating Video
 <img  alt=" 2025-12-01 234414-2" src="https://github.com/tommyktech/YouTubeNotInterestedButton/blob/main/assets/ezgif-18df5ae739b7fc0d.gif?raw=true" />
 
 Tampermonkey script to add One-Click "Not Interested"-related buttons to YouTube videos.   
