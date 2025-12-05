@@ -18,7 +18,8 @@ There are five buttons you can choose:
 - Delete History (in History Page)
 
 # Config Pane
-<img width="577" height="383" alt="image" src="https://s1.ezgif.com/tmp/ezgif-18df5ae739b7fc0d.gif" />
+
+<img width="629" height="428" alt=" 2025-12-02 002352" src="https://github.com/user-attachments/assets/a1cb6447-81bb-43d6-8133-5844648448a6" />
 
 
 You can toggle the visibility of the buttons in the config pane.
