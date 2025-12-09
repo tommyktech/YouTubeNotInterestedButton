@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name           YouTube "Not Interested"-related One-Click Buttons
-// @name:ja        YouTube 「興味なし」ボタン
+// @name:ja        YouTube の「興味なし」系1発クリックボタン
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
-// @description    Add one-click buttons for actions like "Not Interested" on YouTube.
-// @description:ja YouTubeの「興味なし」などを1発で実行できるボタンを設置します
+// @description    Add one-click buttons for actions like "Not interested", "Don't like", "Already watched", "Don't recommend channel" on YouTube.
+// @description:ja YouTubeの「興味なし」「好みではない」「見たことがある」「チャンネルをおすすめしない」などを1発で実行できるボタンを設置します
 // @match          https://www.youtube.com/
 // @match          https://www.youtube.com/?*
 // @match          https://www.youtube.com/watch*
@@ -13,13 +13,11 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.22
+// @version        0.26
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
 // @license        Apache License 2.0
-// @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20%E2%80%9CNot%20Interested%E2%80%9D-related%20One-Click%20Buttons.user.js
-// @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20%E2%80%9CNot%20Interested%E2%80%9D-related%20One-Click%20Buttons.meta.js
 // ==/UserScript==
 /////////////// Modal ///////////////
 GM_addStyle(`
@@ -95,14 +93,6 @@ GM_addStyle(`
     width: 50px !important;
     height: 50px !important;
   }
-  .delete_history_button_container {
-    position: absolute;
-    padding: 0px;
-    margin-right: 6px;
-    border: none;
-    top: 34px;
-    right: 0px;
-  }
   .additional_button_container {
     // position: absolute;
     padding: 0px;
@@ -111,7 +101,7 @@ GM_addStyle(`
     bottom: 0px;
     right: 0px;
     display: flex;
-    justify-content: flex-end; /* 横方向の右寄せ */
+    justify-content: flex-end; /* align to right */
 
   }
   .additional-btn {
@@ -126,6 +116,15 @@ GM_addStyle(`
     cursor: pointer;
     padding: 6px 9px 6px 8px;
   }
+  .additional-btn svg {
+    padding: 0px;
+    height: 24px;
+    width: 24px;
+    stroke: gray;
+    fill: gray;
+    stroke-width:0.5px;
+  }
+
   div.yt-lockup-metadata-view-model__text-container {
     width:100%;
   }
@@ -134,6 +133,7 @@ GM_addStyle(`
   .yt-content-metadata-view-model__metadata-row {
     display: flex;
     align-items: center;
+    flex-wrap: wrap; /* fixed at v0.24: Make the buttons wrap to the bottom. */
   }
   .additional_button_container {
     margin-left: auto;
@@ -152,43 +152,42 @@ GM_addStyle(`
     line-height: 1.4rem;
   }
 
-  .delete_history_button_container > button {
-    padding-top: 0px;
-    width: 31px;
-  }
-
-  .additional-btn svg {
+  .delete_history_button_container {
+    position: absolute;
     padding: 0px;
-    height: 24px;
-    width: 24px;
-    stroke: gray;
-    fill: gray;
-    stroke-width:0.5px;
+    // margin-right: 6px;
+    border: none;
+    top: 32px;
+    right: 0px;
+  }
+  .delete_history_button_container > button {
+    padding-top: 10px;
   }
 
-/* チェックボックス全体 */
-.tm-checkbox {
+
+  /* Checkbox */
+  .tm-checkbox {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
     cursor: pointer;
-}
+  }
 
-/* SVG アイコン */
-.tm-checkbox-icon {
+  /* SVG icon */
+  .tm-checkbox-icon {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
     fill: currentColor;
     vertical-align: middle;
     margin: 0 4px 3px 4px;
-}
+  }
 `);
 
 (function () {
     'use strict';
-
+    console.log('YouTube "Not Interested"-related One-Click Buttons');
     /////////////////////////////////////////////////// Config Modal //////////////////////////////////////////////////////
     let installed_flag = "installed_v0.17";
     const installed = GM_getValue(installed_flag, false);
@@ -212,56 +211,6 @@ GM_addStyle(`
     const DONT_LIKE_SVG_PATH = "m11.31 2 .392.007c1.824.06 3.61.534 5.223 1.388l.343.189.27.154c.264.152.56.24.863.26l.13.004H20.5a1.5 1.5 0 011.5 1.5V11.5a1.5 1.5 0 01-1.5 1.5h-1.79l-.158.013a1 1 0 00-.723.512l-.064.145-2.987 8.535a1 1 0 01-1.109.656l-1.04-.174a4 4 0 01-3.251-4.783L10 15H5.938a3.664 3.664 0 01-3.576-2.868A3.682 3.682 0 013 9.15l-.02-.088A3.816 3.816 0 014 5.5v-.043l.008-.227a2.86 2.86 0 01.136-.664l.107-.28A3.754 3.754 0 017.705 2h3.605ZM7.705 4c-.755 0-1.425.483-1.663 1.2l-.032.126a.818.818 0 00-.01.131v.872l-.587.586a1.816 1.816 0 00-.524 1.465l.038.23.02.087.21.9-.55.744a1.686 1.686 0 00-.321 1.18l.029.177c.17.76.844 1.302 1.623 1.302H10a2.002 2.002 0 011.956 2.419l-.623 2.904-.034.208a2.002 2.002 0 001.454 2.139l.206.045.21.035 2.708-7.741A3.001 3.001 0 0118.71 11H20V6.002h-1.47c-.696 0-1.38-.183-1.985-.528l-.27-.155-.285-.157A10.002 10.002 0 0011.31 4H7.705Z";
     const DELETE_STORY_SVG_PATH = "M19 3h-4V2a1 1 0 00-1-1h-4a1 1 0 00-1 1v1H5a2 2 0 00-2 2h18a2 2 0 00-2-2ZM6 19V7H4v12a4 4 0 004 4h8a4 4 0 004-4V7h-2v12a2 2 0 01-2 2H8a2 2 0 01-2-2Zm4-11a1 1 0 00-1 1v8a1 1 0 102 0V9a1 1 0 00-1-1Zm4 0a1 1 0 00-1 1v8a1 1 0 002 0V9a1 1 0 00-1-1Z";
 
-
-    // create check boxes
-
-    function createCheckboxOld(id, labelText, defaultValue, svgPath) {
-        const container = document.createElement("label");
-        container.style.display = "block";
-        container.style.marginBottom = "8px";
-        container.style.cursor = "pointer";
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = id;
-        checkbox.checked = GM_getValue(id, defaultValue);
-
-        // Save immediately when toggled
-        checkbox.addEventListener("change", () => {
-            GM_setValue(id, checkbox.checked);
-            showSavedMessage();
-
-            // Reload ボタンを有効化
-            const reloadBtn = document.getElementById("tm-reload-btn");
-            if (reloadBtn) reloadBtn.removeAttribute("disabled");
-        });
-
-        const span = document.createElement("span");
-        span.textContent = " " + labelText;
-
-        // append svg
-        const SVG_NS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(SVG_NS, "svg");
-        const path = document.createElementNS(SVG_NS, "path");
-
-        // ここが最重要
-        svg.setAttributeNS(null, "viewBox", "0 0 24 24");
-
-        // 念のため width/height も設定
-        svg.setAttributeNS(null, "width", "24");
-        svg.setAttributeNS(null, "height", "24");
-
-        svg.classList.add("tm-checkbox-icon");
-
-        path.setAttribute("d", svgPath);
-        svg.appendChild(path);
-        span.appendChild(svg);
-
-        container.appendChild(checkbox);
-        container.appendChild(span);
-
-        return container;
-    }
 
     function createCheckbox(id, labelText, defaultValue, svgPath) {
         const container = document.createElement("label");
@@ -362,7 +311,7 @@ GM_addStyle(`
         const reloadBtn = document.createElement("button");
         reloadBtn.id = "tm-reload-btn";
         reloadBtn.textContent = "Reload";
-        // reloadBtn.disabled = true;   // 初期は無効
+        // reloadBtn.disabled = true;
         reloadBtn.setAttribute("disabled", "disabled");
         reloadBtn.addEventListener("click", () => location.reload());
 
@@ -572,10 +521,6 @@ GM_addStyle(`
         });
     }
 
-    // already watched
-    // "m6.666 5.303 2.122 1.272c4.486-1.548 10.002.26 12.08 5.426-.2.5-.435.968-.696 1.406l1.717 1.03c.41-.69.752-1.42 1.02-2.178a.77.77 0 000-.516l-.18-.473C19.998 4.436 12.294 2.448 6.667 5.303Zm-5.524.183a1.003 1.003 0 00.343 1.371l1.8 1.08a11.8 11.8 0 00-2.193 3.805.77.77 0 000 .516c2.853 8.041 12.37 9.784 18.12 5.235l2.273 1.364a1 1 0 101.03-1.714l-20-12a1 1 0 00-1.373.343Zm11.064 2.52L12 8c-.248 0-.49.022-.727.066l4.54 2.724a4 4 0 00-3.607-2.785ZM5.04 8.99l3.124 1.874C8.057 11.224 8 11.606 8 12l.005.206a4 4 0 003.79 3.79L12 16c1.05 0 2.057-.414 2.803-1.152l2.54 1.524C12.655 19.48 5.556 18.024 3.133 12A9.6 9.6 0 015.04 8.99ZM10 12v-.033l2.967 1.78a1.99 1.99 0 01-2.307-.262 2 2 0 01-.65-1.28L10 12Z"
-    // dont like
-    // m11.31 2 .392.007c1.824.06 3.61.534 5.223 1.388l.343.189.27.154c.264.152.56.24.863.26l.13.004H20.5a1.5 1.5 0 011.5 1.5V11.5a1.5 1.5 0 01-1.5 1.5h-1.79l-.158.013a1 1 0 00-.723.512l-.064.145-2.987 8.535a1 1 0 01-1.109.656l-1.04-.174a4 4 0 01-3.251-4.783L10 15H5.938a3.664 3.664 0 01-3.576-2.868A3.682 3.682 0 013 9.15l-.02-.088A3.816 3.816 0 014 5.5v-.043l.008-.227a2.86 2.86 0 01.136-.664l.107-.28A3.754 3.754 0 017.705 2h3.605ZM7.705 4c-.755 0-1.425.483-1.663 1.2l-.032.126a.818.818 0 00-.01.131v.872l-.587.586a1.816 1.816 0 00-.524 1.465l.038.23.02.087.21.9-.55.744a1.686 1.686 0 00-.321 1.18l.029.177c.17.76.844 1.302 1.623 1.302H10a2.002 2.002 0 011.956 2.419l-.623 2.904-.034.208a2.002 2.002 0 001.454 2.139l.206.045.21.035 2.708-7.741A3.001 3.001 0 0118.71 11H20V6.002h-1.47c-.696 0-1.38-.183-1.985-.528l-.27-.155-.285-.157A10.002 10.002 0 0011.31 4H7.705Z
     // attach 'Already Watched' button
     function attachTellUsWhyButton(tile, btnContainer, btnSvgPath, isAlreadyWatched) {
         // selector for original 'Not Interested' button
@@ -676,17 +621,15 @@ GM_addStyle(`
         btnContainer.className = btnContainerName;
 
         const pathName = location.pathname;
-        const tileClassList = tile.classList
-        if (tileClassList.contains("ytd-rich-item-renderer")) {
-            // top page
-            // tile.parentElement.querySelector("yt-lockup-view-model yt-content-metadata-view-model").appendChild(btnContainer);
+        if (pathName == "/") {
             tile.parentElement.querySelector("yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child").appendChild(btnContainer);
-        } else if (tileClassList.contains("ytd-item-section-renderer")) {
+        } else if (pathName == "/watch" || pathName == "/feed/history") {
             if (pathName == "/feed/history") {
                 btnContainer.className = "delete_history_button_container";
             }
             tile.querySelector("div.yt-lockup-view-model__metadata").appendChild(btnContainer);
-            // tile.appendChild(btnContainer);
+        } else {
+            console.error("not found target element");
         }
 
         // attach buttons
