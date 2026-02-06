@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           YouTube "Not Interested"-related One-Click Buttons
-// @name:ja        YouTube の「興味なし」系1発クリックボタン
+// @name           YouTube "Not Interested"-related One-Click Buttons🚫👎️🙈⛔
+// @name:ja        YouTube の「興味なし」系1発クリックボタン追加
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
 // @description    Add one-click buttons for actions like "Not interested", "Don't like", "Already watched", "Don't recommend channel" on YouTube.
 // @description:ja YouTubeの「興味なし」「好みではない」「見たことがある」「チャンネルをおすすめしない」などを1発で実行できるボタンを設置します
@@ -13,7 +13,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.26
+// @version        0.27
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -286,10 +286,10 @@ GM_addStyle(`
             true,
             DONT_RECOMMEND_CHANNEL_SVG_PATH
         );
-        // already watched checkbox container
+        //  checkbox container
         const already_watched_elem = createCheckbox(
             FLAG_ALREADY_WATCHED,
-            "Not Interested -> Already Watched",
+            "Not Interested -> ",
             true,
             ALREADY_WATCHED_SVG_PATH
         );
@@ -521,13 +521,13 @@ GM_addStyle(`
         });
     }
 
-    // attach 'Already Watched' button
+    // attach '' button
     function attachTellUsWhyButton(tile, btnContainer, btnSvgPath, isAlreadyWatched) {
         // selector for original 'Not Interested' button
         var svgPathData = "M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm0 2a9 9 0 018.246 12.605L4.755 6.661A8.99 8.99 0 0112 3ZM3.754 8.393l15.491 8.944A9 9 0 013.754 8.393Z";
         var SVG_SELECTOR = `path[d="${svgPathData}"]`
 
-        // attach a custom 'Already Watched' button
+        // attach a custom '' button
         const btn = document.createElement('button');
         btn.className = 'additional-btn';
 
@@ -595,7 +595,11 @@ GM_addStyle(`
                     const submit_button = await waitForElement(SUBMIT_BUTTON_SELECTOR, dialog_el);
                     const result = dispatchTapLike(submit_button);
                     if (result) {
-                        showOverlay(result? 'Sent "Already Watched"':'Failed to send "Already Watched"');
+                        if (isAlreadyWatched) {
+                            showOverlay(result? 'Sent "Already watched"':'Failed to send "Already watched"');
+                        } else {
+                            showOverlay(result? 'Sent "Don\'t like"':'Failed to send "Don\'t like"');
+                        }
                         btnContainer.style.display = "none";
                     }
                 } catch (err) {
