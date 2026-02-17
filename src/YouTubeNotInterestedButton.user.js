@@ -1,19 +1,16 @@
 // ==UserScript==
 // @name           YouTube "Not Interested"-related One-Click Buttons🚫👎️🙈⛔
-// @name:ja        YouTube の「興味なし」系1発クリックボタン追加
+// @name:ja        YouTube の「興味なし」系1発クリックボタン
 // @namespace      https://github.com/tommyktech/YouTubeNotInterestedButton
 // @description    Add one-click buttons for actions like "Not interested", "Don't like", "Already watched", "Don't recommend channel" on YouTube.
 // @description:ja YouTubeの「興味なし」「好みではない」「見たことがある」「チャンネルをおすすめしない」などを1発で実行できるボタンを設置します
-// @match          https://www.youtube.com/
-// @match          https://www.youtube.com/?*
-// @match          https://www.youtube.com/watch*
-// @match          https://www.youtube.com/feed/history
+// @match          https://www.youtube.com/*
 // @grant          GM_addStyle
 // @grant          GM_registerMenuCommand
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.27
+// @version        0.31
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -29,7 +26,7 @@ GM_addStyle(`
     bottom: 0;
     background: rgba(0,0,0,0.5);
     z-index: 9999999;
-    widht:100%;
+    width:100%;
     height:100%;
   }
   #tm-config-content {
@@ -369,27 +366,13 @@ GM_addStyle(`
     var MENU_SELECTOR = 'ytd-popup-container tp-yt-iron-dropdown';
     const PROCESSED_ATTR = 'data-yt-menu-opener-added';
 
-    // Show overlay notice on top of screen
-    function showOverlay(msg, duration = 3000, backgroundColor="white") {
-        let el = document.createElement("div");
-        el.textContent = msg;
-        Object.assign(el.style, {
-            position: "fixed",
-            top: "0",
-            left: "0",
-            width: "100%",
-            padding: "10px 16px",
-            backgroundColor: backgroundColor,
-            opacity: 0.5,
-            color: "black",
-            fontSize: "24px",
-            zIndex: "99999",
-            textAlign: "center"
+    // Insert message
+    function insertMessage(tile, msg) {
+        let selector = "notification-multi-action-renderer > span > span"
+        waitForElement(selector, tile).then(el => {
+            el.innerText += "\n" + msg;
+            console.log("Displayed message:", msg);
         });
-        document.body.appendChild(el);
-        console.log("Displayed message:", msg);
-
-        setTimeout(() => el.remove(), duration);
     }
 
     // Wait for selected element to appear
@@ -398,16 +381,26 @@ GM_addStyle(`
             const start = Date.now();
 
             const timer = setInterval(() => {
-                const elem = (rootElem || document).querySelector(selector);
-                if (elem && elem.style.display != "none") {
-                    clearInterval(timer);
-                    resolve(elem);
-                    return;
-                }
+                try {
+                    const elem = (rootElem || document).querySelector(selector);
+                    if (elem) {// && elem.style.display != "none") {
+                        const cs = window.getComputedStyle ? window.getComputedStyle(elem) : elem.style;
+                        const visible = cs.display !== 'none' || cs.visibility !== 'hidden';
 
-                if (Date.now() - start > timeoutMs) {
+                        if (visible) {
+                            clearInterval(timer);
+                            resolve(elem);
+                            return;
+                        }
+                    }
+
+                    if (Date.now() - start > timeoutMs) {
+                        clearInterval(timer);
+                        reject(new Error("Timeout: Can't find the element:" + selector + elem));
+                    }
+                } catch (err) {
                     clearInterval(timer);
-                    reject(new Error("Timeout: Can't find the element:" + selector));
+                    reject(err);
                 }
             }, intervalMs);
         });
@@ -472,7 +465,7 @@ GM_addStyle(`
         return true;
     }
 
-    function attachShortcutButton(tile, btnContainer, svgPath, className, overlayMessage) {
+    function attachShortcutButton(tile, btnContainer, svgPath, className, msg) {
         var SVG_SELECTOR = `path[d="${svgPath}"]`
 
         // attach a custom 'Not Interested' button
@@ -510,7 +503,7 @@ GM_addStyle(`
                     console.debug("svg_el:", svg_el)
                     const result = dispatchTapLike(svg_el.parentElement.parentElement)
                     if (result) {
-                        showOverlay(overlayMessage);
+                        insertMessage(tile, msg);
                         btnContainer.style.display = "none";
                     }
                 });
@@ -596,9 +589,9 @@ GM_addStyle(`
                     const result = dispatchTapLike(submit_button);
                     if (result) {
                         if (isAlreadyWatched) {
-                            showOverlay(result? 'Sent "Already watched"':'Failed to send "Already watched"');
+                            insertMessage(tile, result? '(Already watched)':'(Failed to send "Already watched")');
                         } else {
-                            showOverlay(result? 'Sent "Don\'t like"':'Failed to send "Don\'t like"');
+                            insertMessage(tile, result? '(Don\'t like)':'(Failed to send "Don\'t like")');
                         }
                         btnContainer.style.display = "none";
                     }
@@ -615,7 +608,7 @@ GM_addStyle(`
     // Attach custom buttons
     function attachButtons(tile, idx) {
         // check if already processed
-        if (!tile || tile.hasAttribute(PROCESSED_ATTR)) return;
+        if (!tile || tile.hasAttribute(PROCESSED_ATTR) || !tile.textContent) return;
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
@@ -635,14 +628,13 @@ GM_addStyle(`
         } else {
             console.error("not found target element");
         }
-
         // attach buttons
         if (pathName == "/" || pathName == "/watch") {
             if (GM_getValue(FLAG_DONT_RECOMMEND_CHANNEL, true)) {
-                attachShortcutButton(tile, btnContainer, DONT_RECOMMEND_CHANNEL_SVG_PATH, "", 'Sent "Don\' Recommend Channel"');
+                attachShortcutButton(tile, btnContainer, DONT_RECOMMEND_CHANNEL_SVG_PATH, "", '');
             }
             if (GM_getValue(FLAG_NOT_INTERESTED, true)) {
-                attachShortcutButton(tile, btnContainer, NOT_INTERESTED_SVG_PATH, "", 'Sent "Not Interested"');
+                attachShortcutButton(tile, btnContainer, NOT_INTERESTED_SVG_PATH, "", '(Not Interested)');
             }
 
             if (GM_getValue(FLAG_ALREADY_WATCHED, true)) {
@@ -654,7 +646,7 @@ GM_addStyle(`
 
         } else if (pathName == "/feed/history") {
             if (GM_getValue(FLAG_DELETE_HISTORY, true)) {
-                attachShortcutButton(tile, btnContainer, DELETE_STORY_SVG_PATH, "delete-history-btn", 'Sent "Delete History"');
+                attachShortcutButton(tile, btnContainer, DELETE_STORY_SVG_PATH, "delete-history-btn", '');
             }
         }
     }
@@ -671,7 +663,7 @@ GM_addStyle(`
             a.className = "yt-spec-button-shape-next yt-spec-button-shape-next--text yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading yt-spec-button-shape-next--enable-backdrop-filter-experiment";
             a.setAttribute("aria-haspopup", "false");
             a.setAttribute("force-new-state", "true");
-            a.setAttribute("aria-label", "すべての履歴を管理");
+            a.setAttribute("aria-label", "");
             a.setAttribute("aria-current", "false");
             a.setAttribute("aria-disabled", "false");
 
@@ -746,7 +738,6 @@ GM_addStyle(`
             a.appendChild(iconDiv);
             a.appendChild(labelDiv);
             a.appendChild(touch);
-            // outerDiv.append(a);
 
             return a;
         }
@@ -755,11 +746,15 @@ GM_addStyle(`
     }
 
     function scanTargets() {
+        const pathName = location.pathname;
+        if (pathName != "" && pathName != "/" && !pathName.startsWith("/?") && !pathName.startsWith("/watch") && !pathName.startsWith("/feed/history")) {
+            return;
+        }
+
         // attach buttons
         document.querySelectorAll(TILE_SELECTOR).forEach((tile, idx) => attachButtons(tile, idx));
 
         // attach User Feedback Link into History page
-        const pathName = location.pathname;
         if (pathName == "/feed/history") {
             const elem = document.querySelector("ytd-browse-feed-actions-renderer div#contents");
             if (!elem || elem.hasAttribute(PROCESSED_ATTR)) return;
