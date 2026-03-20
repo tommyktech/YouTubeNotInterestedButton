@@ -10,7 +10,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.31
+// @version        0.32
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -82,10 +82,6 @@ GM_addStyle(`
 
 /////////////// Buttons ///////////////
 GM_addStyle(`
-  div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next {
-    width: 60px !important;
-    height: 44px !important;
-  }
   ytm-menu-renderer ytm-menu button c3-icon {
     width: 50px !important;
     height: 50px !important;
@@ -99,7 +95,7 @@ GM_addStyle(`
     right: 0px;
     display: flex;
     justify-content: flex-end; /* align to right */
-
+    z-index:500;
   }
   .additional-btn {
     position: relative;
@@ -286,7 +282,7 @@ GM_addStyle(`
         //  checkbox container
         const already_watched_elem = createCheckbox(
             FLAG_ALREADY_WATCHED,
-            "Not Interested -> ",
+            "Not Interested -> Already Watched",
             true,
             ALREADY_WATCHED_SVG_PATH
         );
@@ -505,6 +501,7 @@ GM_addStyle(`
                     if (result) {
                         insertMessage(tile, msg);
                         btnContainer.style.display = "none";
+                        tile.removeAttribute(PROCESSED_ATTR);
                     }
                 });
             });
@@ -594,6 +591,7 @@ GM_addStyle(`
                             insertMessage(tile, result? '(Don\'t like)':'(Failed to send "Don\'t like")');
                         }
                         btnContainer.style.display = "none";
+                        tile.removeAttribute(PROCESSED_ATTR);
                     }
                 } catch (err) {
                     console.error("Error:", err);
@@ -607,27 +605,59 @@ GM_addStyle(`
 
     // Attach custom buttons
     function attachButtons(tile, idx) {
+        if (!tile || !tile.textContent) return;
+
+        if (!tile.querySelector("yt-lockup-metadata-view-model")) {
+            // movie already deleted
+            return ;
+        }
+
         // check if already processed
-        if (!tile || tile.hasAttribute(PROCESSED_ATTR) || !tile.textContent) return;
+        const btnContainerName = "additional_button_container";
+        // if (tile.querySelector("div.yt-content-metadata-view-model__metadata-row > div." + btnContainerName)) {
+        //     // container already attached
+        //     return;
+        // }
+        if (tile.hasAttribute(PROCESSED_ATTR)) return;
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
         // append button container
-        const btnContainerName = "additional_button_container";
         const btnContainer = document.createElement('div');
         btnContainer.className = btnContainerName;
 
         const pathName = location.pathname;
-        if (pathName == "/") {
-            tile.parentElement.querySelector("yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child").appendChild(btnContainer);
-        } else if (pathName == "/watch" || pathName == "/feed/history") {
-            if (pathName == "/feed/history") {
-                btnContainer.className = "delete_history_button_container";
+        try {
+            if (pathName == "/") {
+                let selector = "yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child";
+                let target = tile.parentElement.querySelector(selector);
+                if (target) {
+                    target.appendChild(btnContainer);
+                } else {
+                    console.warn("not found target element:", selector);
+                    return;
+                }
+            } else if (pathName == "/watch" || pathName == "/feed/history") {
+                if (pathName == "/feed/history") {
+                    btnContainer.className = "delete_history_button_container";
+                }
+                let selector = "div.yt-lockup-view-model__metadata";
+                let target = tile.querySelector(selector);
+                if (target) {
+                    target.appendChild(btnContainer);
+                } else {
+                    console.warn("not found target element:", selector);
+                    return;
+                }
+            } else {
+                console.error("target pathName not found");
+                return ;
             }
-            tile.querySelector("div.yt-lockup-view-model__metadata").appendChild(btnContainer);
-        } else {
-            console.error("not found target element");
+        } catch (error) {
+            console.error(error.message);
+            return;
         }
+
         // attach buttons
         if (pathName == "/" || pathName == "/watch") {
             if (GM_getValue(FLAG_DONT_RECOMMEND_CHANNEL, true)) {
