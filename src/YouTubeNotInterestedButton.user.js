@@ -10,7 +10,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.32
+// @version        0.33
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -359,7 +359,7 @@ GM_addStyle(`
     ///////////////////////////////////////////////// Append Not Interested Buttons //////////////////////////////////////////////////////
     var TILE_SELECTOR = 'yt-lockup-view-model';
     var MENU_BUTTON_SELECTOR = 'div.yt-lockup-metadata-view-model__menu-button button-view-model button';
-    var MENU_SELECTOR = 'ytd-popup-container tp-yt-iron-dropdown';
+    var MENU_SELECTOR = 'ytd-popup-container tp-yt-iron-dropdown yt-sheet-view-model';
     const PROCESSED_ATTR = 'data-yt-menu-opener-added';
 
     // Insert message
