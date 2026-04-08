@@ -10,11 +10,12 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.33
+// @version        0.37
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
 // @license        Apache License 2.0
+// @noframes
 // ==/UserScript==
 /////////////// Modal ///////////////
 GM_addStyle(`
@@ -87,7 +88,6 @@ GM_addStyle(`
     height: 50px !important;
   }
   .additional_button_container {
-    // position: absolute;
     padding: 0px;
     margin-right: 0px;
     border: none;
@@ -96,6 +96,7 @@ GM_addStyle(`
     display: flex;
     justify-content: flex-end; /* align to right */
     z-index:500;
+    margin-left: auto;
   }
   .additional-btn {
     position: relative;
@@ -118,30 +119,22 @@ GM_addStyle(`
     stroke-width:0.5px;
   }
 
-  div.yt-lockup-metadata-view-model__text-container {
+  div.ytLockupMetadataViewModelTextContainer, div.yt-lockup-metadata-view-model__text-container {
     width:100%;
   }
 
   /* align button container to the right */
-  .yt-content-metadata-view-model__metadata-row {
+  .yt-content-metadata-view-model__metadata-row, .ytContentMetadataViewModelMetadataRow {
     display: flex;
     align-items: center;
     flex-wrap: wrap; /* fixed at v0.24: Make the buttons wrap to the bottom. */
+    position: relative;
   }
-  .additional_button_container {
-    margin-left: auto;
-  }
-
-  /* // delete "New" badge
-  yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(3) {
-    display: none !important;
-  }
-  */
 
   a.yt-lockup-metadata-view-model__title {
     line-height: 1.8rem;
   }
-  span.yt-content-metadata-view-model__metadata-text {
+  span.yt-content-metadata-view-model__metadata-text, span.ytContentMetadataViewModelMetadataText {
     line-height: 1.4rem;
   }
 
@@ -358,7 +351,7 @@ GM_addStyle(`
 
     ///////////////////////////////////////////////// Append Not Interested Buttons //////////////////////////////////////////////////////
     var TILE_SELECTOR = 'yt-lockup-view-model';
-    var MENU_BUTTON_SELECTOR = 'div.yt-lockup-metadata-view-model__menu-button button-view-model button';
+    var MENU_BUTTON_SELECTOR = 'div.yt-lockup-metadata-view-model__menu-button button-view-model button,div.ytLockupMetadataViewModelMenuButton button-view-model button';
     var MENU_SELECTOR = 'ytd-popup-container tp-yt-iron-dropdown yt-sheet-view-model';
     const PROCESSED_ATTR = 'data-yt-menu-opener-added';
 
@@ -622,14 +615,22 @@ GM_addStyle(`
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
+        console.log(1);
         // append button container
         const btnContainer = document.createElement('div');
         btnContainer.className = btnContainerName;
+        console.log(2);
 
         const pathName = location.pathname;
         try {
             if (pathName == "/") {
-                let selector = "yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child";
+                const selectors = [
+                    "yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:last-child",
+                    "yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:last-child"
+                ];
+
+                const selector = selectors.join(", ");
+
                 let target = tile.parentElement.querySelector(selector);
                 if (target) {
                     target.appendChild(btnContainer);
@@ -657,6 +658,7 @@ GM_addStyle(`
             console.error(error.message);
             return;
         }
+        console.log(3);
 
         // attach buttons
         if (pathName == "/" || pathName == "/watch") {
@@ -782,7 +784,10 @@ GM_addStyle(`
         }
 
         // attach buttons
-        document.querySelectorAll(TILE_SELECTOR).forEach((tile, idx) => attachButtons(tile, idx));
+        const tiles = document.querySelectorAll(TILE_SELECTOR);
+        console.log("tiles.length:", tiles.length);
+
+        tiles.forEach((tile, idx) => attachButtons(tile, idx));
 
         // attach User Feedback Link into History page
         if (pathName == "/feed/history") {
