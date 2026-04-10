@@ -5,7 +5,7 @@
 // @match        https://www.youtube.com/watch*
 // @grant        GM_addStyle
 // @run-at       document-idle
-// @version      0.12
+// @version      0.13
 // ==/UserScript==
 GM_addStyle(`
 div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next, div.ytLockupMetadataViewModelMenuButton button.yt-spec-button-shape-next  {
@@ -31,8 +31,8 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
 
     var TILE_SELECTOR = 'yt-lockup-view-model';
     var LIVE_SELECTOR = 'yt-thumbnail-view-model yt-thumbnail-overlay-badge-view-model badge-shape.yt-badge-shape--thumbnail-live';
-    var MEMBER_ONLY_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow';
-    var N_VIEWERS_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2) span, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
+    var MEMBER_ONLY_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow, div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow';
+    var N_VIEWERS_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2) span, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span, div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
     const PROCESSED_ATTR = 'data-yt-low-view-processed';
 
     // 要素を隠す
