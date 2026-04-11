@@ -5,7 +5,7 @@
 // @match        https://www.youtube.com/watch*
 // @grant        GM_addStyle
 // @run-at       document-idle
-// @version      0.13
+// @version      0.14
 // ==/UserScript==
 GM_addStyle(`
 div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next, div.ytLockupMetadataViewModelMenuButton button.yt-spec-button-shape-next  {
@@ -88,7 +88,7 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
     }
 
     function scanTiles() {
-        var checkElem = document.querySelector("div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2)  span.yt-core-attributed-string, div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)  span.yt-core-attributed-string")
+        var checkElem = document.querySelector("div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2)  span.yt-core-attributed-string, div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)  span.yt-core-attributed-string, yt-content-metadata-view-model > div:nth-child(2) > span")
         if (!checkElem) return ;
         const elems = document.querySelectorAll(TILE_SELECTOR);
         elems.forEach((tile, idx) => removeLowViewVideos(tile, idx));
