@@ -10,12 +10,14 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.37
+// @version        0.39
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
 // @license        Apache License 2.0
 // @noframes
+// @downloadURL https://update.greasyfork.org/scripts/556867/YouTube%20%22Not%20Interested%22-related%20One-Click%20Buttons%F0%9F%9A%AB%F0%9F%91%8E%EF%B8%8F%F0%9F%99%88%E2%9B%94.user.js
+// @updateURL https://update.greasyfork.org/scripts/556867/YouTube%20%22Not%20Interested%22-related%20One-Click%20Buttons%F0%9F%9A%AB%F0%9F%91%8E%EF%B8%8F%F0%9F%99%88%E2%9B%94.meta.js
 // ==/UserScript==
 /////////////// Modal ///////////////
 GM_addStyle(`
@@ -131,7 +133,7 @@ GM_addStyle(`
     position: relative;
   }
 
-  a.yt-lockup-metadata-view-model__title {
+  a.yt-lockup-metadata-view-model__title, a.ytLockupMetadataViewModelTitle {
     line-height: 1.8rem;
   }
   span.yt-content-metadata-view-model__metadata-text, span.ytContentMetadataViewModelMetadataText {
@@ -615,11 +617,9 @@ GM_addStyle(`
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
 
-        console.log(1);
         // append button container
         const btnContainer = document.createElement('div');
         btnContainer.className = btnContainerName;
-        console.log(2);
 
         const pathName = location.pathname;
         try {
@@ -642,7 +642,8 @@ GM_addStyle(`
                 if (pathName == "/feed/history") {
                     btnContainer.className = "delete_history_button_container";
                 }
-                let selector = "div.yt-lockup-view-model__metadata";
+                // let selector = "div.yt-lockup-view-model__metadata,div.ytLockupViewModelMetadata";
+                let selector = "yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:last-child";
                 let target = tile.querySelector(selector);
                 if (target) {
                     target.appendChild(btnContainer);
@@ -658,7 +659,6 @@ GM_addStyle(`
             console.error(error.message);
             return;
         }
-        console.log(3);
 
         // attach buttons
         if (pathName == "/" || pathName == "/watch") {
