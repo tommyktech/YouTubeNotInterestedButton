@@ -4,8 +4,9 @@
 // @match        https://www.youtube.com/?*
 // @match        https://www.youtube.com/watch*
 // @grant        GM_addStyle
+// @noframes
 // @run-at       document-idle
-// @version      0.15
+// @version      0.16
 // ==/UserScript==
 GM_addStyle(`
 div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next, div.ytLockupMetadataViewModelMenuButton button.yt-spec-button-shape-next  {
