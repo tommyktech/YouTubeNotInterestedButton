@@ -5,7 +5,7 @@
 // @match        https://www.youtube.com/watch*
 // @grant        GM_addStyle
 // @run-at       document-idle
-// @version      0.14
+// @version      0.15
 // ==/UserScript==
 GM_addStyle(`
 div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next, div.ytLockupMetadataViewModelMenuButton button.yt-spec-button-shape-next  {
@@ -31,8 +31,16 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
 
     var TILE_SELECTOR = 'yt-lockup-view-model';
     var LIVE_SELECTOR = 'yt-thumbnail-view-model yt-thumbnail-overlay-badge-view-model badge-shape.yt-badge-shape--thumbnail-live';
-    var MEMBER_ONLY_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow, div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow';
-    var N_VIEWERS_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2) span, div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span, div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
+    LIVE_SELECTOR += ', yt-thumbnail-view-model yt-thumbnail-badge-view-model badge-shape.ytBadgeShapeThumbnailLive';
+
+    var MEMBER_ONLY_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row'
+    MEMBER_ONLY_SELECTOR += ', div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow'
+    MEMBER_ONLY_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow';
+
+    var N_VIEWERS_SELECTOR = 'div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2) span';
+    N_VIEWERS_SELECTOR += ', div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
+/*     N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span'; */
+    N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow span.ytContentMetadataViewModelLeadingIcon + span';
     const PROCESSED_ATTR = 'data-yt-low-view-processed';
 
     // 要素を隠す
@@ -61,13 +69,13 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         }
 
         // まずメン限を消す
-        const rowElems = tile.querySelectorAll(MEMBER_ONLY_SELECTOR);
+/*         const rowElems = tile.querySelectorAll(MEMBER_ONLY_SELECTOR);
         if (rowElems.length >= 3 && rowElems[2].children.length >= 2) {
             // メン限など、YouTubeからの余計なおすすめが入ってきてる要素なので消す
             removeVideo(tile)
             console.info("Removed Recommended Video By YouTube:", tile.textContent)
             return;
-        }
+        } */
 
         // 視聴者数が少ない動画を消す
         const nViewersElem = tile.querySelector(N_VIEWERS_SELECTOR);
@@ -75,12 +83,13 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
             console.error("視聴者数が取れない tile.textContent:", tile.textContent);
             return ;
         }
-        // const nViewers = nViewersElem.textContent.split(" ")[0];
+        console.log("nViewersElem.textContent:", nViewersElem.textContent);
         const nViewers = extractNumberAndDot(nViewersElem.textContent)
 
         // 万とかK, M などの単位が入っている場合は十分視聴数があるので何もしない
         if (/[.万億KMkm]/.test(nViewers)) return;
 
+        console.log("nViewers:", nViewers);
         if (parseInt(nViewers) < 3000) {
             removeVideo(tile)
             console.log("Removed Video with Low-view (under 3000):", tile.textContent)
