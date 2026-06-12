@@ -10,7 +10,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.39
+// @version        0.40
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -616,6 +616,7 @@ GM_addStyle(`
         if (tile.hasAttribute(PROCESSED_ATTR)) return;
         tile.setAttribute(PROCESSED_ATTR, '1');
         tile.style.position = 'relative';
+        console.debug("Attaching \"Not-Interested\" buttons...");
 
         // append button container
         const btnContainer = document.createElement('div');
@@ -785,7 +786,6 @@ GM_addStyle(`
 
         // attach buttons
         const tiles = document.querySelectorAll(TILE_SELECTOR);
-        console.log("tiles.length:", tiles.length);
 
         tiles.forEach((tile, idx) => attachButtons(tile, idx));
 
