@@ -42,6 +42,9 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
     N_VIEWERS_SELECTOR += ', div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
 /*     N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span'; */
     N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow span.ytContentMetadataViewModelLeadingIcon + span';
+    N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-lockup-metadata-view-model div.ytLockupMetadataViewModelTextContainer div.ytLockupMetadataViewModelMetadata yt-content-metadata-view-model.ytContentMetadataViewModelMediumText div.ytContentMetadataViewModelMetadataRow:nth-child(2)';
+    N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-lockup-metadata-view-model div.ytLockupMetadataViewModelTextContainer div.ytLockupMetadataViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)';
+
     const PROCESSED_ATTR = 'data-yt-low-view-processed';
 
     // 要素を隠す
@@ -54,6 +57,7 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         }
     }
     function extractNumberAndDot(str) {
+        str = str.split(" • ")[0];
         return str.replace(/[^0-9.万億kmKM]/g, '');
     }
     function removeLowViewVideos(tile, idx) {
@@ -62,12 +66,12 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         }
         tile.setAttribute(PROCESSED_ATTR, '1');
 
-        // live は処理しない
+        
         const live_badge = tile.querySelector(LIVE_SELECTOR);
-        if (live_badge) {
-            console.log("Skipped processing with live stream:", tile.textContent)
-            return ;
-        }
+        // if (live_badge) {
+        //     console.log("Skipped processing with live stream:", tile.textContent)
+        //     return ;
+        // }
 
         // まずメン限を消す
 /*         const rowElems = tile.querySelectorAll(MEMBER_ONLY_SELECTOR);
@@ -91,7 +95,7 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         if (/[.万億KMkm]/.test(nViewers)) return;
 
         console.log("nViewers:", nViewers);
-        if (parseInt(nViewers) < 3000) {
+        if (live_badge && parseInt(nViewers) < 1000 || !live_badge && parseInt(nViewers) < 3000) {
             removeVideo(tile)
             console.log("Removed Video with Low-view (under 3000):", tile.textContent)
         }
