@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Home=Desktop / Watch=Mobile + New Tab
 // @namespace    https://tampermonkey.net/
-// @version      2.2.1
+// @version      2.3.0
 // @description  YouTubeトップはデスクトップ版、動画視聴はモバイル版。トップから動画をタップすると新しいタブで開く。
 // @match        https://youtube.com/*
 // @match        https://www.youtube.com/*
@@ -18,7 +18,6 @@
     const CANONICAL = 'youtube.com';
     const BOUNCE_KEY = '__tm_yt_route_bounce__';
     const MAX_BOUNCES = 2;
-    let lastTouchOpenTime = 0;
 
     const isHome = (url = new URL(location.href)) => url.pathname === '/';
 
@@ -78,11 +77,13 @@
 
     function redirectTo(url) {
         if (url.href === location.href) return;
+
         const state = getBounceState();
         if (state && state.url === url.toString() && state.count >= MAX_BOUNCES) {
             console.warn('[YT Route] redirect loop detected:', url.href);
             return;
         }
+
         setBounceState(url);
         location.replace(url.href);
     }
@@ -115,6 +116,7 @@
 
     function getVideoUrl(event) {
         if (!(event.target instanceof Element)) return null;
+
         const anchor = event.target.closest('a[href]');
         if (!anchor) return null;
 
@@ -147,7 +149,10 @@
         };
     }
 
-    window.addEventListener('popstate', () => setTimeout(routeCurrentPage, 0), true);
+    window.addEventListener('popstate', () => {
+        setTimeout(routeCurrentPage, 0);
+    }, true);
+
     window.addEventListener('__tm_yt_route_locationchange', () => {
         setTimeout(routeCurrentPage, 0);
         setTimeout(routeCurrentPage, 50);
@@ -161,26 +166,63 @@
         }
     }, 500);
 
-    document.addEventListener('pointerup', event => {
+    // ==========================================
+    // タブレットのタップを最初の段階で横取り
+    // ==========================================
+
+    let pendingVideoUrl = null;
+    let touchHandled = false;
+
+    document.addEventListener('pointerdown', event => {
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
         if (location.hostname !== DESKTOP || !isHome()) return;
 
         const href = getVideoUrl(event);
         if (!href) return;
 
+        pendingVideoUrl = makeMobileUrl(href);
+        touchHandled = false;
+
+        // YouTube側にこのタップを渡さない
         event.preventDefault();
-        event.stopPropagation();
-        lastTouchOpenTime = Date.now();
+        event.stopImmediatePropagation();
+    }, { capture: true, passive: false });
 
-        const mobileUrl = makeMobileUrl(href);
-        const tab = window.open(mobileUrl.href, '_blank');
+    document.addEventListener('pointerup', event => {
+        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+        if (!pendingVideoUrl) return;
 
-        if (!tab) console.warn('[YT Route] New tab was blocked:', mobileUrl.href);
-    }, true);
+        event.preventDefault();
+        event.stopImmediatePropagation();
 
+        if (!touchHandled) {
+            touchHandled = true;
+
+            const url = pendingVideoUrl.href;
+            pendingVideoUrl = null;
+
+            window.open(url, '_blank');
+        }
+    }, { capture: true, passive: false });
+
+    document.addEventListener('pointercancel', event => {
+        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+        pendingVideoUrl = null;
+        touchHandled = false;
+    }, { capture: true, passive: false });
+
+    // 念のため生成されたclickも潰す
     document.addEventListener('click', event => {
-        if (Date.now() - lastTouchOpenTime < 1000) return;
-        if (event.defaultPrevented || event.button !== 0) return;
+        if (!touchHandled) return;
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        touchHandled = false;
+    }, { capture: true, passive: false });
+
+    // PCの左クリック
+    document.addEventListener('click', event => {
+        if (event.button !== 0) return;
         if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         if (location.hostname !== DESKTOP || !isHome()) return;
 
@@ -188,11 +230,9 @@
         if (!href) return;
 
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
 
-        const mobileUrl = makeMobileUrl(href);
-        const tab = window.open(mobileUrl.href, '_blank');
+        window.open(makeMobileUrl(href).href, '_blank');
+    }, { capture: true, passive: false });
 
-        if (!tab) console.warn('[YT Route] New tab was blocked:', mobileUrl.href);
-    }, true);
 })();
