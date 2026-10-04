@@ -6,7 +6,7 @@
 // @match        https://www.youtube.com/*
 // @grant        unsafeWindow
 // @run-at       document-start
-// ==UserScript==
+// ==/UserScript==
 
 (function() {
     'use strict';
