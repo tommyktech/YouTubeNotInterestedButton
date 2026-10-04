@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         YouTube Hard Block: Fullscreen, Chat & Miniplayer
 // @namespace    http://tampermonkey.net/
-// @version      3.0
-// @description  全画面化・チャット読み込み・ミニプレーヤーをAPI/ネットワークレベルで根本遮断します
+// @version      4.0
+// @description  全画面化・チャット通信・ミニプレーヤーを根本無効化します
 // @match        https://www.youtube.com/*
 // @grant        unsafeWindow
 // @run-at       document-start
@@ -12,46 +12,18 @@
     'use strict';
 
     const win = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-    const noopPromise = () => Promise.reject(new Error('Blocked by UserScript'));
-    const noop = () => {};
 
-    // =========================================================
-    // 1. 全画面化 (requestFullscreen) の根本遮断
-    // =========================================================
+    // 1. 全画面化 (requestFullscreen) の完全無効化
     if (win.Element) {
-        win.Element.prototype.requestFullscreen = noopPromise;
-        win.Element.prototype.webkitRequestFullscreen = noopPromise;
+        win.Element.prototype.requestFullscreen = function() {
+            return Promise.reject(new Error('Fullscreen disabled'));
+        };
+        win.Element.prototype.webkitRequestFullscreen = function() {};
     }
 
-    // =========================================================
-    // 2. ミニプレーヤー (Picture-in-Picture & ytd-miniplayer) の根本遮断
-    // =========================================================
-    if (win.HTMLVideoElement) {
-        win.HTMLVideoElement.prototype.requestPictureInPicture = noopPromise;
-    }
-
-    // Element prototypeレベルで active プロパティの更新をブロック
-    if (win.Element) {
-        try {
-            Object.defineProperty(win.Element.prototype, 'active', {
-                get: function() { return false; },
-                set: noop, // active = true への変更要求をすべて無視
-                configurable: true
-            });
-        } catch (e) {}
-
-        win.Element.prototype.open = noop;
-        win.Element.prototype.activate = noop;
-        win.Element.prototype.selectMiniplayer = noop;
-    }
-
-    // =========================================================
-    // 3. チャット領域の通信・データ読み込み根本遮断
-    // =========================================================
-
-    // (A) fetch リクエストのフック (live_chat 通信の阻止)
-    const origFetch = win.fetch;
-    if (origFetch) {
+    // 2. チャット通信 (live_chat) のネットワーク遮断
+    if (win.fetch) {
+        const origFetch = win.fetch;
         win.fetch = function(input, init) {
             const url = typeof input === 'string' ? input : (input && input.url) || '';
             if (url.includes('live_chat')) {
@@ -60,47 +32,62 @@
             return origFetch.apply(this, arguments);
         };
     }
-
-    // (B) XMLHttpRequest のフック
-    const origXHR = win.XMLHttpRequest;
-    if (origXHR) {
-        const origOpen = origXHR.prototype.open;
-        origXHR.prototype.open = function(method, url) {
+    if (win.XMLHttpRequest) {
+        const origOpen = win.XMLHttpRequest.prototype.open;
+        win.XMLHttpRequest.prototype.open = function(method, url) {
             if (typeof url === 'string' && url.includes('live_chat')) {
-                this.send = noop; // 通信送信を即座に破棄
+                this.send = function() {};
                 return;
             }
             return origOpen.apply(this, arguments);
         };
     }
 
-    // (C) iframe (live_chat) の src 設定を直接フックして阻止
-    if (win.HTMLIFrameElement) {
-        const desc = Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
-        if (desc && desc.set) {
-            Object.defineProperty(win.HTMLIFrameElement.prototype, 'src', {
-                set: function(val) {
-                    if (typeof val === 'string' && val.includes('live_chat')) {
-                        return; // src 代入自体を無効化
-                    }
-                    desc.set.call(this, val);
-                },
-                get: desc.get,
-                configurable: true
+    // 3. ミニプレーヤー起動イベントの最上流キャプチャ＆即時抹殺
+    const killEvent = function(e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        e.preventDefault();
+    };
+
+    const miniplayerEvents = [
+        'yt-miniplayer-activate',
+        'yt-miniplayer-active',
+        'yt-open-miniplayer'
+    ];
+    miniplayerEvents.forEach(evt => {
+        win.addEventListener(evt, killEvent, true);
+        document.addEventListener(evt, killEvent, true);
+    });
+
+    // YouTube内部の共通Action経由でのミニプレーヤー化をブロック
+    const handleYtAction = function(e) {
+        const action = e.detail && e.detail.actionName;
+        if (action && (action.includes('miniplayer') || action.includes('MINIPLAYER'))) {
+            killEvent(e);
+        }
+    };
+    win.addEventListener('yt-action', handleYtAction, true);
+    document.addEventListener('yt-action', handleYtAction, true);
+
+    // 4. YouTube内部設定 (ytcfg) のミニプレーヤースワイプ無効化
+    const patchYtcfg = function() {
+        if (win.ytcfg && win.ytcfg.set) {
+            win.ytcfg.set({
+                WEB_ENABLE_MINIPLAYER: false,
+                ENABLE_MINIPLAYER_SWIPE: false
             });
         }
-    }
+    };
+    patchYtcfg();
+    document.addEventListener('DOMContentLoaded', patchYtcfg);
 
-    // (D) YouTube初期データ (ytInitialData) からチャットオブジェクトを破棄
-    let initialData = win.ytInitialData;
-    Object.defineProperty(win, 'ytInitialData', {
-        get: () => initialData,
-        set: (data) => {
-            if (data && data.contents && data.contents.twoColumnWatchNextResults) {
-                delete data.contents.twoColumnWatchNextResults.conversation;
-            }
-            initialData = data;
-        },
-        configurable: true
-    });
+    // 5. チャット・ミニプレーヤー要素のCSS完全抹殺
+    const style = document.createElement('style');
+    style.textContent = `
+        #chat, ytd-live-chat-frame, #chat-container, ytd-miniplayer {
+            display: none !important;
+        }
+    `;
+    (document.head || document.documentElement).appendChild(style);
 })();
