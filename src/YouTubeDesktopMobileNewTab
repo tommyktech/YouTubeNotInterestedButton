@@ -1,0 +1,198 @@
+// ==UserScript==
+// @name         YouTube Home=Desktop / Watch=Mobile + New Tab
+// @namespace    https://tampermonkey.net/
+// @version      2.2.1
+// @description  YouTubeトップはデスクトップ版、動画視聴はモバイル版。トップから動画をタップすると新しいタブで開く。
+// @match        https://youtube.com/*
+// @match        https://www.youtube.com/*
+// @match        https://m.youtube.com/*
+// @run-at       document-start
+// @grant        none
+// ==/UserScript==
+
+(() => {
+    'use strict';
+
+    const DESKTOP = 'www.youtube.com';
+    const MOBILE = 'm.youtube.com';
+    const CANONICAL = 'youtube.com';
+    const BOUNCE_KEY = '__tm_yt_route_bounce__';
+    const MAX_BOUNCES = 2;
+    let lastTouchOpenTime = 0;
+
+    const isHome = (url = new URL(location.href)) => url.pathname === '/';
+
+    const isWatch = (url = new URL(location.href)) => {
+        const p = url.pathname;
+        return p === '/watch' || p.startsWith('/shorts/') || p.startsWith('/live/') || p.startsWith('/clip/');
+    };
+
+    const isYoutube = (host = location.hostname) =>
+        host === CANONICAL || host === DESKTOP || host === MOBILE;
+
+    function makeDesktopUrl(source) {
+        const url = new URL(source.href);
+        url.hostname = DESKTOP;
+        url.searchParams.delete('app');
+        url.searchParams.delete('persist_app');
+        url.searchParams.set('app', 'desktop');
+        url.searchParams.set('persist_app', '1');
+        return url;
+    }
+
+    function makeMobileUrl(source) {
+        const url = new URL(source.href);
+        url.hostname = MOBILE;
+        url.searchParams.delete('app');
+        url.searchParams.delete('persist_app');
+        url.searchParams.set('app', 'm');
+        url.searchParams.set('persist_app', '1');
+        return url;
+    }
+
+    function getBounceState() {
+        try {
+            return JSON.parse(sessionStorage.getItem(BOUNCE_KEY) || 'null');
+        } catch {
+            return null;
+        }
+    }
+
+    function setBounceState(targetUrl) {
+        try {
+            const now = Date.now();
+            const url = targetUrl.toString();
+            const current = getBounceState();
+            const state = current && current.url === url && now - current.time < 5000
+                ? { url, count: current.count + 1, time: now }
+                : { url, count: 1, time: now };
+            sessionStorage.setItem(BOUNCE_KEY, JSON.stringify(state));
+        } catch {}
+    }
+
+    function clearBounceState() {
+        try {
+            sessionStorage.removeItem(BOUNCE_KEY);
+        } catch {}
+    }
+
+    function redirectTo(url) {
+        if (url.href === location.href) return;
+        const state = getBounceState();
+        if (state && state.url === url.toString() && state.count >= MAX_BOUNCES) {
+            console.warn('[YT Route] redirect loop detected:', url.href);
+            return;
+        }
+        setBounceState(url);
+        location.replace(url.href);
+    }
+
+    function routeCurrentPage() {
+        if (!isYoutube()) return;
+
+        const url = new URL(location.href);
+        const host = location.hostname;
+
+        if (isHome(url) && host === DESKTOP) {
+            clearBounceState();
+            return;
+        }
+
+        if (isWatch(url) && host === MOBILE) {
+            clearBounceState();
+            return;
+        }
+
+        if (isHome(url) && (host === MOBILE || host === CANONICAL)) {
+            redirectTo(makeDesktopUrl(url));
+            return;
+        }
+
+        if (isWatch(url) && (host === DESKTOP || host === CANONICAL)) {
+            redirectTo(makeMobileUrl(url));
+        }
+    }
+
+    function getVideoUrl(event) {
+        if (!(event.target instanceof Element)) return null;
+        const anchor = event.target.closest('a[href]');
+        if (!anchor) return null;
+
+        try {
+            const url = new URL(anchor.href, location.href);
+            return isYoutube(url.hostname) && isWatch(url) ? url : null;
+        } catch {
+            return null;
+        }
+    }
+
+    routeCurrentPage();
+
+    document.addEventListener('yt-navigate-start', () => {
+        setTimeout(routeCurrentPage, 0);
+        setTimeout(routeCurrentPage, 50);
+    }, true);
+
+    document.addEventListener('yt-navigate-finish', () => {
+        routeCurrentPage();
+        setTimeout(routeCurrentPage, 50);
+    }, true);
+
+    for (const method of ['pushState', 'replaceState']) {
+        const original = history[method];
+        history[method] = function (...args) {
+            const result = original.apply(this, args);
+            window.dispatchEvent(new Event('__tm_yt_route_locationchange'));
+            return result;
+        };
+    }
+
+    window.addEventListener('popstate', () => setTimeout(routeCurrentPage, 0), true);
+    window.addEventListener('__tm_yt_route_locationchange', () => {
+        setTimeout(routeCurrentPage, 0);
+        setTimeout(routeCurrentPage, 50);
+    }, true);
+
+    let lastUrl = location.href;
+    setInterval(() => {
+        if (location.href !== lastUrl) {
+            lastUrl = location.href;
+            routeCurrentPage();
+        }
+    }, 500);
+
+    document.addEventListener('pointerup', event => {
+        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+        if (location.hostname !== DESKTOP || !isHome()) return;
+
+        const href = getVideoUrl(event);
+        if (!href) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        lastTouchOpenTime = Date.now();
+
+        const mobileUrl = makeMobileUrl(href);
+        const tab = window.open(mobileUrl.href, '_blank');
+
+        if (!tab) console.warn('[YT Route] New tab was blocked:', mobileUrl.href);
+    }, true);
+
+    document.addEventListener('click', event => {
+        if (Date.now() - lastTouchOpenTime < 1000) return;
+        if (event.defaultPrevented || event.button !== 0) return;
+        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        if (location.hostname !== DESKTOP || !isHome()) return;
+
+        const href = getVideoUrl(event);
+        if (!href) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const mobileUrl = makeMobileUrl(href);
+        const tab = window.open(mobileUrl.href, '_blank');
+
+        if (!tab) console.warn('[YT Route] New tab was blocked:', mobileUrl.href);
+    }, true);
+})();
