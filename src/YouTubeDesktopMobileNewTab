@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Home=Desktop / Watch=Mobile + New Tab
 // @namespace    https://tampermonkey.net/
-// @version      2.3.0
+// @version      2.4.0
 // @description  YouTubeトップはデスクトップ版、動画視聴はモバイル版。トップから動画をタップすると新しいタブで開く。
 // @match        https://youtube.com/*
 // @match        https://www.youtube.com/*
