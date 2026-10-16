@@ -167,11 +167,14 @@
     }, 500);
 
     // ==========================================
-    // タブレットのタップを最初の段階で横取り
+    // タブレットのタップとスワイプを判別
     // ==========================================
 
-    let pendingVideoUrl = null;
-    let touchHandled = false;
+    let activeTouch = null;
+    let ignoreTouchClickUntil = 0;
+
+    const TOUCH_MOVE_THRESHOLD = 12; // px
+    const TOUCH_CLICK_SUPPRESS_MS = 800;
 
     document.addEventListener('pointerdown', event => {
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
@@ -180,45 +183,66 @@
         const href = getVideoUrl(event);
         if (!href) return;
 
-        pendingVideoUrl = makeMobileUrl(href);
-        touchHandled = false;
+        activeTouch = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            url: makeMobileUrl(href),
+            moved: false
+        };
 
-        // YouTube側にこのタップを渡さない
-        event.preventDefault();
+        // YouTube側のイベント処理は止めるが、スクロールは妨げない
         event.stopImmediatePropagation();
-    }, { capture: true, passive: false });
+    }, { capture: true, passive: true });
+
+    document.addEventListener('pointermove', event => {
+        if (!activeTouch) return;
+        if (event.pointerId !== activeTouch.pointerId) return;
+
+        const dx = event.clientX - activeTouch.startX;
+        const dy = event.clientY - activeTouch.startY;
+
+        if (Math.hypot(dx, dy) > TOUCH_MOVE_THRESHOLD) {
+            activeTouch.moved = true;
+        }
+    }, { capture: true, passive: true });
 
     document.addEventListener('pointerup', event => {
-        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
-        if (!pendingVideoUrl) return;
+        if (!activeTouch) return;
+        if (event.pointerId !== activeTouch.pointerId) return;
+
+        const gesture = activeTouch;
+        activeTouch = null;
+
+        // タップ後に発生するclickによる二重遷移も防ぐ
+        ignoreTouchClickUntil = Date.now() + TOUCH_CLICK_SUPPRESS_MS;
 
         event.preventDefault();
         event.stopImmediatePropagation();
 
-        if (!touchHandled) {
-            touchHandled = true;
+        // 指を動かしていた場合は動画を開かない
+        if (gesture.moved) return;
 
-            const url = pendingVideoUrl.href;
-            pendingVideoUrl = null;
-
-            window.open(url, '_blank');
-        }
+        window.open(gesture.url.href, '_blank');
     }, { capture: true, passive: false });
 
     document.addEventListener('pointercancel', event => {
-        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
-        pendingVideoUrl = null;
-        touchHandled = false;
-    }, { capture: true, passive: false });
+        if (!activeTouch) return;
+        if (event.pointerId !== activeTouch.pointerId) return;
 
-    // 念のため生成されたclickも潰す
+        activeTouch = null;
+        ignoreTouchClickUntil = Date.now() + TOUCH_CLICK_SUPPRESS_MS;
+    }, { capture: true, passive: true });
+
+    // タップ・スワイプ後のclickによる誤遷移を防ぐ
     document.addEventListener('click', event => {
-        if (!touchHandled) return;
+        if (Date.now() > ignoreTouchClickUntil) return;
 
         event.preventDefault();
         event.stopImmediatePropagation();
-        touchHandled = false;
     }, { capture: true, passive: false });
+
+
 
     // PCの左クリック
     document.addEventListener('click', event => {
