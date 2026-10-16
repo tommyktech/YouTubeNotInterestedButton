@@ -3,10 +3,13 @@
 // @match        https://www.youtube.com/
 // @match        https://www.youtube.com/?*
 // @match        https://www.youtube.com/watch*
+// @match        https://m.youtube.com/
+// @match        https://m.youtube.com/?*
+// @match        https://m.youtube.com/watch*
 // @grant        GM_addStyle
 // @noframes
 // @run-at       document-idle
-// @version      0.16
+// @version      0.17
 // ==/UserScript==
 GM_addStyle(`
 div.yt-lockup-metadata-view-model__menu-button button.yt-spec-button-shape-next, div.ytLockupMetadataViewModelMenuButton button.yt-spec-button-shape-next  {
@@ -30,7 +33,7 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
     'use strict';
     console.log("YouTube Remove Low-View Videos Init")
 
-    var TILE_SELECTOR = 'yt-lockup-view-model';
+    var TILE_SELECTOR = 'yt-lockup-view-model, ytm-media-item';
     var LIVE_SELECTOR = 'yt-thumbnail-view-model yt-thumbnail-overlay-badge-view-model badge-shape.yt-badge-shape--thumbnail-live';
     LIVE_SELECTOR += ', yt-thumbnail-view-model yt-thumbnail-badge-view-model badge-shape.ytBadgeShapeThumbnailLive';
 
@@ -42,9 +45,7 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
     N_VIEWERS_SELECTOR += ', div.yt-lockup-view-model__metadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span';
 /*     N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2) span'; */
     N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow span.ytContentMetadataViewModelLeadingIcon + span';
-    N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-lockup-metadata-view-model div.ytLockupMetadataViewModelTextContainer div.ytLockupMetadataViewModelMetadata yt-content-metadata-view-model.ytContentMetadataViewModelMediumText div.ytContentMetadataViewModelMetadataRow:nth-child(2)';
-    N_VIEWERS_SELECTOR += ', div.ytLockupViewModelMetadata yt-lockup-metadata-view-model div.ytLockupMetadataViewModelTextContainer div.ytLockupMetadataViewModelMetadata yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)';
-
+    N_VIEWERS_SELECTOR += ", ytm-video-with-context-renderer > ytm-media-item .media-item-metadata ytm-badge-and-byline-renderer:last-of-type > span.ytmBadgeAndBylineRendererItemByline:not(:has(~ span.ytmBadgeAndBylineRendererItemByline)) > span.ytAttributedStringHost";
     const PROCESSED_ATTR = 'data-yt-low-view-processed';
 
     // 要素を隠す
@@ -57,7 +58,6 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         }
     }
     function extractNumberAndDot(str) {
-        str = str.split(" • ")[0];
         return str.replace(/[^0-9.万億kmKM]/g, '');
     }
     function removeLowViewVideos(tile, idx) {
@@ -66,12 +66,12 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         }
         tile.setAttribute(PROCESSED_ATTR, '1');
 
-        
+        // live は処理しない
         const live_badge = tile.querySelector(LIVE_SELECTOR);
-        // if (live_badge) {
-        //     console.log("Skipped processing with live stream:", tile.textContent)
-        //     return ;
-        // }
+        if (live_badge) {
+            console.log("Skipped processing with live stream:", tile.textContent)
+            return ;
+        }
 
         // まずメン限を消す
 /*         const rowElems = tile.querySelectorAll(MEMBER_ONLY_SELECTOR);
@@ -95,15 +95,15 @@ ytd-watch-next-secondary-results-renderer > div#items::-webkit-scrollbar {
         if (/[.万億KMkm]/.test(nViewers)) return;
 
         console.log("nViewers:", nViewers);
-        if (live_badge && parseInt(nViewers) < 1000 || !live_badge && parseInt(nViewers) < 3000) {
+        if (parseInt(nViewers) < 3000) {
             removeVideo(tile)
             console.log("Removed Video with Low-view (under 3000):", tile.textContent)
         }
     }
 
     function scanTiles() {
-        var checkElem = document.querySelector("div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2)  span.yt-core-attributed-string, div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)  span.yt-core-attributed-string, yt-content-metadata-view-model > div:nth-child(2) > span")
-        if (!checkElem) return ;
+        // var checkElem = document.querySelector("div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.yt-content-metadata-view-model__metadata-row:nth-child(2)  span.yt-core-attributed-string, div#contents yt-lockup-view-model yt-lockup-metadata-view-model yt-content-metadata-view-model div.ytContentMetadataViewModelMetadataRow:nth-child(2)  span.yt-core-attributed-string, yt-content-metadata-view-model > div:nth-child(2) > span")
+        // if (!checkElem) return ;
         const elems = document.querySelectorAll(TILE_SELECTOR);
         elems.forEach((tile, idx) => removeLowViewVideos(tile, idx));
     }
