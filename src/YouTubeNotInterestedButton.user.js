@@ -10,7 +10,7 @@
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @run-at         document-idle
-// @version        0.40
+// @version        0.41
 // @homepageURL    https://github.com/tommyktech/YouTubeNotInterestedButton
 // @supportURL     https://github.com/tommyktech/YouTubeNotInterestedButton/issues
 // @author         https://github.com/tommyktech
@@ -366,6 +366,23 @@ GM_addStyle(`
         });
     }
 
+    function findMenuTarget(root, svgSelector, menuText) {
+        const svg = root.querySelector(svgSelector);
+        if (svg) return svg.parentElement.parentElement;
+
+        if (menuText) {
+            const menuTexts = Array.isArray(menuText) ? menuText : [menuText];
+            const textElem = [...root.querySelectorAll("*")].find(
+                el => el.childElementCount === 0 && menuTexts.includes(el.textContent.trim())
+            );
+            if (textElem) {
+                return textElem.closest('button, [role="menuitem"], yt-list-item-view-model, ytd-menu-service-item-renderer, tp-yt-paper-item')
+                || textElem.parentElement?.parentElement;
+            }
+        }
+        return null;
+    }
+
     // Wait for selected element to appear
     function waitForElement(selector, rootElem = null, intervalMs = 100, timeoutMs = 2000) {
         return new Promise((resolve, reject) => {
@@ -373,7 +390,8 @@ GM_addStyle(`
 
             const timer = setInterval(() => {
                 try {
-                    const elem = (rootElem || document).querySelector(selector);
+                    const root = rootElem || document;
+                    const elem = typeof selector === "function" ? selector(root) : root.querySelector(selector);
                     if (elem) {// && elem.style.display != "none") {
                         const cs = window.getComputedStyle ? window.getComputedStyle(elem) : elem.style;
                         const visible = cs.display !== 'none' || cs.visibility !== 'hidden';
@@ -456,7 +474,7 @@ GM_addStyle(`
         return true;
     }
 
-    function attachShortcutButton(tile, btnContainer, svgPath, className, msg) {
+    function attachShortcutButton(tile, btnContainer, svgPath, className, msg, menuText = "") {
         var SVG_SELECTOR = `path[d="${svgPath}"]`
 
         // attach a custom 'Not Interested' button
@@ -487,12 +505,24 @@ GM_addStyle(`
             dispatchTapLike(menuBtn)
 
             // Check if the menu appeared
-            waitForElement(MENU_SELECTOR).then(dropdown_el => {
-                console.debug("dropdown_el:", dropdown_el)
+/*             waitForElement(MENU_SELECTOR).then(dropdown_el => {
+                // console.debug("dropdown_el:", dropdown_el)
                 // Check if the target element appeared
                 waitForElement(SVG_SELECTOR, dropdown_el).then(svg_el => {
-                    console.debug("svg_el:", svg_el)
+                    // console.debug("svg_el:", svg_el)
                     const result = dispatchTapLike(svg_el.parentElement.parentElement)
+                    if (result) {
+                        insertMessage(tile, msg);
+                        btnContainer.style.display = "none";
+                        tile.removeAttribute(PROCESSED_ATTR);
+                    }
+                });
+            }); */
+            waitForElement(MENU_SELECTOR).then(dropdown_el => {
+                console.debug("dropdown_el:", dropdown_el);
+                waitForElement(root => findMenuTarget(root, SVG_SELECTOR, menuText), dropdown_el).then(menu_target => {
+                    console.debug("menu_target:", menu_target);
+                    const result = dispatchTapLike(menu_target);
                     if (result) {
                         insertMessage(tile, msg);
                         btnContainer.style.display = "none";
@@ -664,10 +694,10 @@ GM_addStyle(`
         // attach buttons
         if (pathName == "/" || pathName == "/watch") {
             if (GM_getValue(FLAG_DONT_RECOMMEND_CHANNEL, true)) {
-                attachShortcutButton(tile, btnContainer, DONT_RECOMMEND_CHANNEL_SVG_PATH, "", '');
+                attachShortcutButton(tile, btnContainer, DONT_RECOMMEND_CHANNEL_SVG_PATH, "", '', ["チャンネルをおすすめに表示しない", "Don't recommend channel"]);
             }
             if (GM_getValue(FLAG_NOT_INTERESTED, true)) {
-                attachShortcutButton(tile, btnContainer, NOT_INTERESTED_SVG_PATH, "", '(Not Interested)');
+                attachShortcutButton(tile, btnContainer, NOT_INTERESTED_SVG_PATH, "", '', ["興味なし", "Not interested"]);
             }
 
             if (GM_getValue(FLAG_ALREADY_WATCHED, true)) {
